@@ -1,6 +1,6 @@
 # 发布到 GitHub 计划（待审阅，未执行）
 
-**状态：已批准，执行中。**
+**状态：已执行。** 仓库 https://github.com/qyyyy09315/thesis-review-pipeline
 
 **Goal:** 把当前审稿工作区整理成公开 Git 仓库并推送，README 写明借鉴的 GitHub 项目与论文链接。
 
