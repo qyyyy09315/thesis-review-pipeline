@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>审稿报告 — 基于改进注意力机制的图像分类方法研究</title>
+<style>
+body { font-family: "Noto Serif SC", "Source Han Serif SC", serif; max-width: 880px; margin: 2rem auto; line-height: 1.6; color: #1a1a1a; }
+h1,h2,h3 { font-family: "Noto Sans SC", "Source Han Sans SC", sans-serif; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.95rem; }
+th, td { border: 1px solid #ccc; padding: 0.4rem 0.6rem; vertical-align: top; }
+th { background: #f4f4f4; text-align: left; }
+.grade { font-size: 1.2rem; font-weight: 700; }
+</style>
+</head>
+<body>
+<h1>高水平本科毕业设计审稿报告</h1>
+<p>论文题目：基于改进注意力机制的图像分类方法研究<br/>研究方向/专业领域：计算机科学与技术<br/>整体定级：<span class="grade">退修</span></p>
+<h3>一、 总体评价与学术定位（Executive Summary）</h3>
+<p>本稿题为《基于改进注意力机制的图像分类方法研究》，领域为计算机科学与技术。当前审稿主要依据 Stage 1 机械预检与分审骨架，尚未完成全部人工深审。预检检出未定义符号 3 处、过强断言 6 处、结构缺口 6 项。</p>
+<p>定级理由：机械预检已暴露问题形式化、文献边界、消融与统计有效性缺口；在 Agent A/B/C 未填入实质性深审之前，不能按优秀论文标准定级。</p>
+<h4>五维评分卡</h4>
+<table><thead><tr><th>维度</th><th>分数</th><th>依据</th></tr></thead>
+<tbody><tr><td>问题定义</td><td>1/5</td><td>未检出问题形式化/输入输出定义信号。</td></tr><tr><td>文献综述</td><td>1/5</td><td>未见独立的相关工作/文献综述章节信号，综述可能被压缩为罗列或缺失。</td></tr><tr><td>方法严密性</td><td>1/5</td><td>未定义符号 3 处：`lambda`、`alpha`、`R`</td></tr><tr><td>实验充分度</td><td>1/5</td><td>缺口：ablation、baseline、variance、failure_case</td></tr><tr><td>写作规范</td><td>1/5</td><td>无量化支撑的过强断言 6 处。</td></tr></tbody></table>
+<h3>二、 实质性修改意见（Major Comments - 关乎学术严谨性与论证逻辑）</h3>
+<ol><li><p><strong>【定位】</strong>结构缺口/related_work</p><p><strong>【具体问题】</strong>未见独立的相关工作/文献综述章节信号，综述可能被压缩为罗列或缺失。</p><p><strong>【理论/学术依据】</strong>优秀毕设与同行评审均要求问题可形式化、文献有边界、实验能隔离贡献。</p><p><strong>【建议改进措施】</strong>在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。</p></li><li><p><strong>【定位】</strong>结构缺口/ablation</p><p><strong>【具体问题】</strong>全文未出现消融实验信号，无法证明各模块独立贡献。</p><p><strong>【理论/学术依据】</strong>优秀毕设与同行评审均要求问题可形式化、文献有边界、实验能隔离贡献。</p><p><strong>【建议改进措施】</strong>在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。</p></li><li><p><strong>【定位】</strong>结构缺口/baseline</p><p><strong>【具体问题】</strong>未检出基线/对比方法表述，实验对照可能不充分。</p><p><strong>【理论/学术依据】</strong>优秀毕设与同行评审均要求问题可形式化、文献有边界、实验能隔离贡献。</p><p><strong>【建议改进措施】</strong>在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。</p></li><li><p><strong>【定位】</strong>结构缺口/problem_formulation</p><p><strong>【具体问题】</strong>未检出问题形式化/输入输出定义信号。</p><p><strong>【理论/学术依据】</strong>优秀毕设与同行评审均要求问题可形式化、文献有边界、实验能隔离贡献。</p><p><strong>【建议改进措施】</strong>在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。</p></li><li><p><strong>【定位】</strong>摘要/结论 L7</p><p><strong>【具体问题】</strong>存在无量化支撑的过强断言，例如「本文首次提出一种全新的注意力融合模块，实验证明该方法显著提高了分类精度，全面优于现有方法。」。</p><p><strong>【理论/学术依据】</strong>主张强度必须被实验数字或引用锚定，否则构成 overclaim。</p><p><strong>【建议改进措施】</strong>删除或改写为与证据匹配的表述，并在实验节给出对应指标。</p></li></ol>
+<h3>三、 规范性与细节性修改意见（Minor Comments - 关乎格式、符号与表达）</h3>
+<ol><li><strong>【公式 L19】</strong>公式中出现符号 `lambda`，全文未见显式定义。</li><li><strong>【公式 L19】</strong>公式中出现符号 `alpha`，全文未见显式定义。</li><li><strong>【公式 L19】</strong>公式中出现符号 `R`，全文未见显式定义。</li><li><strong>【实验/failure_case】</strong>未检出失效案例或局限性分析。</li><li><strong>【实验/variance】</strong>未检出方差/误差棒/显著性表述。</li></ol>
+<h4>问题–证据表</h4>
+<table><thead><tr><th>级别</th><th>定位</th><th>问题</th></tr></thead>
+<tbody><tr><td>Major</td><td>结构缺口/related_work</td><td>未见独立的相关工作/文献综述章节信号，综述可能被压缩为罗列或缺失。</td></tr><tr><td>Major</td><td>结构缺口/ablation</td><td>全文未出现消融实验信号，无法证明各模块独立贡献。</td></tr><tr><td>Major</td><td>结构缺口/baseline</td><td>未检出基线/对比方法表述，实验对照可能不充分。</td></tr><tr><td>Major</td><td>结构缺口/problem_formulation</td><td>未检出问题形式化/输入输出定义信号。</td></tr><tr><td>Major</td><td>摘要/结论 L7</td><td>存在无量化支撑的过强断言，例如「本文首次提出一种全新的注意力融合模块，实验证明该方法显著提高了分类精度，全面优于现有方法。」。</td></tr><tr><td>Minor</td><td>公式 L19</td><td>公式中出现符号 `lambda`，全文未见显式定义。</td></tr><tr><td>Minor</td><td>公式 L19</td><td>公式中出现符号 `alpha`，全文未见显式定义。</td></tr><tr><td>Minor</td><td>公式 L19</td><td>公式中出现符号 `R`，全文未见显式定义。</td></tr><tr><td>Minor</td><td>实验/failure_case</td><td>未检出失效案例或局限性分析。</td></tr><tr><td>Minor</td><td>实验/variance</td><td>未检出方差/误差棒/显著性表述。</td></tr></tbody></table>
+<h3>四、 二稿修改路线图与落地行动计划（Actionable Revision Roadmap）</h3>
+<p><strong>理论与方法重塑（优先）</strong></p>
+<ul><li>补全问题形式化：给出输入/输出空间、符号表与目标函数各项含义。</li><li>把“改进模块”写成可证伪机制，而不是模块清单。</li></ul>
+<p><strong>补充实验设计</strong></p>
+<ul><li>补充至少一组消融，证明每个改动的独立贡献。</li><li>报告均值±方差或重复实验，并增加失效案例分析。</li></ul>
+<p><strong>文本与结构精修</strong></p>
+<ul><li>删除无数值支撑的“首次提出/显著提高/全面优于”。</li><li>相关工作改为批判性对比，明确与最近 2–3 年 SOTA 的边界。</li></ul>
+</body></html>

@@ -1,0 +1,10 @@
+{
+  "created_at": "2026-09-17T11:25:54",
+  "source": "papers/sample_thesis.md",
+  "ingest": "ingest/sample_thesis.md",
+  "title": "基于改进注意力机制的图像分类方法研究",
+  "field": "计算机科学与技术",
+  "slug": "sample_thesis",
+  "stage": "stage1-complete",
+  "grade": "退修"
+}

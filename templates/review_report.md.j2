@@ -1,0 +1,70 @@
+# 高水平本科毕业设计审稿报告
+
+- 论文题目：{{ title }}
+- 研究方向/专业领域：{{ field }}
+- 整体定级：**{{ grade }}**
+
+### 一、 总体评价与学术定位（Executive Summary）
+
+{{ contribution_summary }}
+
+定级理由：{{ grade_reason }}
+
+**五维评分卡（1–5，预检自动打分，深审可覆盖）**
+
+| 维度 | 分数 | 依据 |
+| --- | --- | --- |
+{% for row in scorecard %}
+| {{ row.name }} | {{ row.score }}/5 | {{ row.note }} |
+{% endfor %}
+
+### 二、 实质性修改意见（Major Comments - 关乎学术严谨性与论证逻辑）
+
+{% if majors %}
+{% for item in majors %}
+{{ loop.index }}. 【定位】{{ item.location }}
+   【具体问题】{{ item.problem }}
+   【理论/学术依据】{{ item.basis }}
+   【建议改进措施】{{ item.action }}
+{% endfor %}
+{% else %}
+（深审尚未写入 Major。请先完成 Agent A/B/C，再运行 render。）
+{% endif %}
+
+### 三、 规范性与细节性修改意见（Minor Comments - 关乎格式、符号与表达）
+
+{% if minors %}
+{% for item in minors %}
+{{ loop.index }}. 【{{ item.location }}】{{ item.problem }}
+{% endfor %}
+{% else %}
+（暂无 Minor。）
+{% endif %}
+
+**问题–证据表**
+
+| 级别 | 定位 | 问题 |
+| --- | --- | --- |
+{% for row in evidence_map %}
+| {{ row.severity }} | {{ row.location }} | {{ row.problem }} |
+{% endfor %}
+
+### 四、 二稿修改路线图与落地行动计划（Actionable Revision Roadmap）
+
+**理论与方法重塑（优先）**
+
+{% for step in roadmap.theory %}
+- {{ step }}
+{% endfor %}
+
+**补充实验设计**
+
+{% for step in roadmap.experiments %}
+- {{ step }}
+{% endfor %}
+
+**文本与结构精修**
+
+{% for step in roadmap.writing %}
+- {{ step }}
+{% endfor %}

@@ -1,0 +1,13 @@
+{
+  "status": "pending",
+  "grade": "退修",
+  "contribution_summary": "",
+  "grade_reason": "",
+  "majors": [],
+  "minors": [],
+  "roadmap": {
+    "theory": [],
+    "experiments": [],
+    "writing": []
+  }
+}

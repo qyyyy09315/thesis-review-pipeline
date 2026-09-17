@@ -1,0 +1,30 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+.DS_Store
+Thumbs.db
+.zcode/
+.env
+.env.*
+
+# Runtime artifacts: never commit real student papers or later review runs.
+papers/*
+!papers/.gitkeep
+!papers/README.md
+!papers/sample_thesis.md
+ingest/*
+!ingest/.gitkeep
+!ingest/sample_thesis.md
+logs/*
+!logs/.gitkeep
+runs/*
+!runs/.gitkeep
+!runs/20260917-112554-sample_thesis/
+!runs/20260917-112554-sample_thesis/**
+
+# Local-only helpers; not part of the public CLI
+scripts/_scan_pii.py
+scripts/_scrub_paths.py

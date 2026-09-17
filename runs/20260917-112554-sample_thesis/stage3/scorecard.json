@@ -1,0 +1,32 @@
+[
+  {
+    "key": "problem",
+    "name": "问题定义",
+    "score": 1,
+    "note": "未检出问题形式化/输入输出定义信号。"
+  },
+  {
+    "key": "literature",
+    "name": "文献综述",
+    "score": 1,
+    "note": "未见独立的相关工作/文献综述章节信号，综述可能被压缩为罗列或缺失。"
+  },
+  {
+    "key": "method",
+    "name": "方法严密性",
+    "score": 1,
+    "note": "未定义符号 3 处：`lambda`、`alpha`、`R`"
+  },
+  {
+    "key": "experiment",
+    "name": "实验充分度",
+    "score": 1,
+    "note": "缺口：ablation、baseline、variance、failure_case"
+  },
+  {
+    "key": "writing",
+    "name": "写作规范",
+    "score": 1,
+    "note": "无量化支撑的过强断言 6 处。"
+  }
+]

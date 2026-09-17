@@ -1,0 +1,305 @@
+{
+  "title": "基于改进注意力机制的图像分类方法研究",
+  "field": "计算机科学与技术",
+  "grade": "退修",
+  "contribution_summary": "本稿题为《基于改进注意力机制的图像分类方法研究》，领域为计算机科学与技术。当前审稿主要依据 Stage 1 机械预检与分审骨架，尚未完成全部人工深审。预检检出未定义符号 3 处、过强断言 6 处、结构缺口 6 项。",
+  "grade_reason": "机械预检已暴露问题形式化、文献边界、消融与统计有效性缺口；在 Agent A/B/C 未填入实质性深审之前，不能按优秀论文标准定级。",
+  "majors": [
+    {
+      "location": "结构缺口/related_work",
+      "problem": "未见独立的相关工作/文献综述章节信号，综述可能被压缩为罗列或缺失。",
+      "basis": "优秀毕设与同行评审均要求问题可形式化、文献有边界、实验能隔离贡献。",
+      "action": "在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。"
+    },
+    {
+      "location": "结构缺口/ablation",
+      "problem": "全文未出现消融实验信号，无法证明各模块独立贡献。",
+      "basis": "优秀毕设与同行评审均要求问题可形式化、文献有边界、实验能隔离贡献。",
+      "action": "在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。"
+    },
+    {
+      "location": "结构缺口/baseline",
+      "problem": "未检出基线/对比方法表述，实验对照可能不充分。",
+      "basis": "优秀毕设与同行评审均要求问题可形式化、文献有边界、实验能隔离贡献。",
+      "action": "在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。"
+    },
+    {
+      "location": "结构缺口/problem_formulation",
+      "problem": "未检出问题形式化/输入输出定义信号。",
+      "basis": "优秀毕设与同行评审均要求问题可形式化、文献有边界、实验能隔离贡献。",
+      "action": "在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。"
+    },
+    {
+      "location": "摘要/结论 L7",
+      "problem": "存在无量化支撑的过强断言，例如「本文首次提出一种全新的注意力融合模块，实验证明该方法显著提高了分类精度，全面优于现有方法。」。",
+      "basis": "主张强度必须被实验数字或引用锚定，否则构成 overclaim。",
+      "action": "删除或改写为与证据匹配的表述，并在实验节给出对应指标。"
+    }
+  ],
+  "minors": [
+    {
+      "location": "公式 L19",
+      "problem": "公式中出现符号 `lambda`，全文未见显式定义。"
+    },
+    {
+      "location": "公式 L19",
+      "problem": "公式中出现符号 `alpha`，全文未见显式定义。"
+    },
+    {
+      "location": "公式 L19",
+      "problem": "公式中出现符号 `R`，全文未见显式定义。"
+    },
+    {
+      "location": "实验/failure_case",
+      "problem": "未检出失效案例或局限性分析。"
+    },
+    {
+      "location": "实验/variance",
+      "problem": "未检出方差/误差棒/显著性表述。"
+    }
+  ],
+  "roadmap": {
+    "theory": [
+      "补全问题形式化：给出输入/输出空间、符号表与目标函数各项含义。",
+      "把“改进模块”写成可证伪机制，而不是模块清单。"
+    ],
+    "experiments": [
+      "补充至少一组消融，证明每个改动的独立贡献。",
+      "报告均值±方差或重复实验，并增加失效案例分析。"
+    ],
+    "writing": [
+      "删除无数值支撑的“首次提出/显著提高/全面优于”。",
+      "相关工作改为批判性对比，明确与最近 2–3 年 SOTA 的边界。"
+    ]
+  },
+  "scorecard": [
+    {
+      "key": "problem",
+      "name": "问题定义",
+      "score": 1,
+      "note": "未检出问题形式化/输入输出定义信号。"
+    },
+    {
+      "key": "literature",
+      "name": "文献综述",
+      "score": 1,
+      "note": "未见独立的相关工作/文献综述章节信号，综述可能被压缩为罗列或缺失。"
+    },
+    {
+      "key": "method",
+      "name": "方法严密性",
+      "score": 1,
+      "note": "未定义符号 3 处：`lambda`、`alpha`、`R`"
+    },
+    {
+      "key": "experiment",
+      "name": "实验充分度",
+      "score": 1,
+      "note": "缺口：ablation、baseline、variance、failure_case"
+    },
+    {
+      "key": "writing",
+      "name": "写作规范",
+      "score": 1,
+      "note": "无量化支撑的过强断言 6 处。"
+    }
+  ],
+  "evidence_map": [
+    {
+      "severity": "Major",
+      "location": "结构缺口/related_work",
+      "problem": "未见独立的相关工作/文献综述章节信号，综述可能被压缩为罗列或缺失。",
+      "action": "在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。"
+    },
+    {
+      "severity": "Major",
+      "location": "结构缺口/ablation",
+      "problem": "全文未出现消融实验信号，无法证明各模块独立贡献。",
+      "action": "在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。"
+    },
+    {
+      "severity": "Major",
+      "location": "结构缺口/baseline",
+      "problem": "未检出基线/对比方法表述，实验对照可能不充分。",
+      "action": "在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。"
+    },
+    {
+      "severity": "Major",
+      "location": "结构缺口/problem_formulation",
+      "problem": "未检出问题形式化/输入输出定义信号。",
+      "action": "在对应章节补齐可核验的定义、对照表或消融表，而不是补一句口号。"
+    },
+    {
+      "severity": "Major",
+      "location": "摘要/结论 L7",
+      "problem": "存在无量化支撑的过强断言，例如「本文首次提出一种全新的注意力融合模块，实验证明该方法显著提高了分类精度，全面优于现有方法。」。",
+      "action": "删除或改写为与证据匹配的表述，并在实验节给出对应指标。"
+    },
+    {
+      "severity": "Minor",
+      "location": "公式 L19",
+      "problem": "公式中出现符号 `lambda`，全文未见显式定义。",
+      "action": ""
+    },
+    {
+      "severity": "Minor",
+      "location": "公式 L19",
+      "problem": "公式中出现符号 `alpha`，全文未见显式定义。",
+      "action": ""
+    },
+    {
+      "severity": "Minor",
+      "location": "公式 L19",
+      "problem": "公式中出现符号 `R`，全文未见显式定义。",
+      "action": ""
+    },
+    {
+      "severity": "Minor",
+      "location": "实验/failure_case",
+      "problem": "未检出失效案例或局限性分析。",
+      "action": ""
+    },
+    {
+      "severity": "Minor",
+      "location": "实验/variance",
+      "problem": "未检出方差/误差棒/显著性表述。",
+      "action": ""
+    }
+  ],
+  "lint": {
+    "title": "基于改进注意力机制的图像分类方法研究",
+    "n_chars": 414,
+    "n_lines": 32,
+    "defined_symbols": [
+      "L",
+      "L_ce",
+      "L_reg",
+      "N",
+      "d",
+      "e",
+      "f",
+      "i",
+      "j",
+      "k",
+      "m",
+      "n",
+      "t",
+      "theta",
+      "x",
+      "y"
+    ],
+    "undefined_symbols": [
+      {
+        "symbol": "lambda",
+        "line": 19,
+        "message": "公式中出现符号 `lambda`，全文未见显式定义。"
+      },
+      {
+        "symbol": "alpha",
+        "line": 19,
+        "message": "公式中出现符号 `alpha`，全文未见显式定义。"
+      },
+      {
+        "symbol": "R",
+        "line": 19,
+        "message": "公式中出现符号 `R`，全文未见显式定义。"
+      }
+    ],
+    "overclaims": [
+      {
+        "code": "OC1",
+        "line": 7,
+        "quote": "本文首次提出一种全新的注意力融合模块，实验证明该方法显著提高了分类精度，全面优于现有方法。",
+        "has_number": false,
+        "has_citation": false,
+        "message": "断言含绝对化措辞，但本句缺少数值量化或文献索引。"
+      },
+      {
+        "code": "OC2",
+        "line": 7,
+        "quote": "本文首次提出一种全新的注意力融合模块，实验证明该方法显著提高了分类精度，全面优于现有方法。",
+        "has_number": false,
+        "has_citation": false,
+        "message": "断言含绝对化措辞，但本句缺少数值量化或文献索引。"
+      },
+      {
+        "code": "OC3",
+        "line": 7,
+        "quote": "本文首次提出一种全新的注意力融合模块，实验证明该方法显著提高了分类精度，全面优于现有方法。",
+        "has_number": false,
+        "has_citation": false,
+        "message": "断言含绝对化措辞，但本句缺少数值量化或文献索引。"
+      },
+      {
+        "code": "OC4",
+        "line": 7,
+        "quote": "本文首次提出一种全新的注意力融合模块，实验证明该方法显著提高了分类精度，全面优于现有方法。",
+        "has_number": false,
+        "has_citation": false,
+        "message": "断言含绝对化措辞，但本句缺少数值量化或文献索引。"
+      },
+      {
+        "code": "OC5",
+        "line": 31,
+        "quote": "本文方法效果很好，具有广阔应用前景。",
+        "has_number": false,
+        "has_citation": false,
+        "message": "断言含绝对化措辞，但本句缺少数值量化或文献索引。"
+      },
+      {
+        "code": "OC6",
+        "line": 31,
+        "quote": "本文方法效果很好，具有广阔应用前景。",
+        "has_number": false,
+        "has_citation": false,
+        "message": "断言含绝对化措辞，但本句缺少数值量化或文献索引。"
+      }
+    ],
+    "structure_gaps": [
+      {
+        "key": "related_work",
+        "message": "未见独立的相关工作/文献综述章节信号，综述可能被压缩为罗列或缺失。"
+      },
+      {
+        "key": "ablation",
+        "message": "全文未出现消融实验信号，无法证明各模块独立贡献。"
+      },
+      {
+        "key": "baseline",
+        "message": "未检出基线/对比方法表述，实验对照可能不充分。"
+      },
+      {
+        "key": "failure_case",
+        "message": "未检出失效案例或局限性分析。"
+      },
+      {
+        "key": "variance",
+        "message": "未检出方差/误差棒/显著性表述。"
+      },
+      {
+        "key": "problem_formulation",
+        "message": "未检出问题形式化/输入输出定义信号。"
+      }
+    ],
+    "headings": [
+      "基于改进注意力机制的图像分类方法研究",
+      "摘要",
+      "第一章 绪论",
+      "第三章 方法设计",
+      "第四章 实验",
+      "第五章 结论"
+    ],
+    "blocker_count": 9,
+    "major_hint_count": 6
+  },
+  "meta": {
+    "created_at": "2026-09-17T11:25:54",
+    "source": "papers/sample_thesis.md",
+    "ingest": "ingest/sample_thesis.md",
+    "title": "基于改进注意力机制的图像分类方法研究",
+    "field": "计算机科学与技术",
+    "slug": "sample_thesis",
+    "stage": "stage1-complete",
+    "grade": "退修"
+  }
+}
