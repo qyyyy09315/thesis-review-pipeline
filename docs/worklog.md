@@ -89,3 +89,12 @@ render `20260917-112554-sample_thesis` → `runs/20260917-112554-sample_thesis/r
 
 render `20260917-112554-sample_thesis` → `runs/20260917-112554-sample_thesis/review_report.md`
 
+## 2026-09-17 会话：完善 README
+
+重写根目录 `README.md`，面向编码 Agent 工作区（ZCode / Codex / WorkBuddy 等），保留 CLI 独立用法。
+
+- 补适用范围、给 Agent 的入口、run 产物、报告合同、Unix 解释器路径。
+- 增加徽章、目录、mermaid 流程图；不改论文源文件与流水线代码。
+- 语言按 `qu-ai-wei` / `lieflat-less-ai-tone` 压过：去掉「不是……而是」翻案腔与过密顿号罗列，维持公文/技术说明语体。
+
+
