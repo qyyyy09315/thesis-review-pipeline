@@ -34,15 +34,17 @@ ingest → Stage1 linter → Agent A/B/C 分审 → consolidator → render 四�
 
 ## 执行清单
 
-1. 确认论文路径；复制或指向 `papers/`。默认离线，未经用户明确要求不要外搜文献。
-2. 运行 `init-run`。阅读 `runs/<id>/stage1/linter.md`。
-3. 按 `templates/agents/` 填写：
+1. 确认论文路径；复制或指向 `papers/`。默认离线，未经用户明确要求不要外搜文献。重复审稿的 docx 用 `ingest --versioned` 避免同名覆盖。
+2. 运行 `init-run`。阅读 `runs/<id>/stage1/linter.md`。`init-run` 定级记为「待深审」，`metadata.grade_suggested` 只是机械预检建议。
+3. 先读 `ledger list`：上一轮未闭环项必须逐条核销或继续追踪。
+4. 按 `templates/agents/` 填写：
    - A 动机与文献边界 → `agents/agent_a_motivation.json`
    - B 方法严密性 → `agents/agent_b_methodology.json`
    - C 实验充分度 → `agents/agent_c_experiments.json`
    - 聚合 → `agents/consolidator.json`
-4. `render`。核对报告含且仅含 spec 规定的四级标题。
-5. 向 `docs/worklog.md` 追加本轮结论（CLI 已自动写一条；深审结束后再补一条人工摘要）。
+5. 深审结束把 `consolidator.status` 改为 `done`，并把 Stage 1 每条结构缺口写入 `linter_triage`（accept/reject + 依据）；`done` 后 `majors`/`minors` 空列表 = 确认无，render 不再机械兜底。
+6. 新问题 `ledger add`，已闭环 `ledger close`，再 `render`。核对报告含且仅含 spec 规定的四级标题。
+7. 向 `docs/worklog.md` 追加本轮结论（CLI 已自动写一条；深审结束后再补一条人工摘要）。提交 git 前跑 `sanitize` + `doctor`。
 
 ## 报告合同
 

@@ -16,7 +16,9 @@
 3. **不编造文献**：不得虚构 DOI、基线成绩或审稿人原话。
 4. **默认离线**：未获用户明确授权不得 `--online` / 文献外搜。
 5. **工作日志**：每次 CLI 或实质性审稿步骤必须追加 `docs/worklog.md`。
-6. **隐私**：真实学生论文、学号、姓名、学校内部材料不得提交 git。`papers/` 与后续 `runs/` 已被 `.gitignore` 忽略（样例除外）。日志与 metadata 只写相对路径。
+6. **隐私**：真实学生论文、学号、姓名、学校内部材料不得提交 git。`papers/` 与后续 `runs/` 已被 `.gitignore` 忽略（样例除外）。日志与 metadata 只写相对路径；**提交前必跑 `sanitize` 清洗绝对路径，再跑 `doctor` 确认对账干净**。
+7. **深审闭环**：深审完成后把 `consolidator.json` 的 `status` 改为 `done`；预检结构缺口逐项写入 `linter_triage`（accept/reject + 依据），误报不得以 Major 形式进入报告。
+8. **跨轮台账**：新发现的 Major/Minor 用 `ledger add` 登记，闭环用 `ledger close`；深审只处理 `ledger list` 中的 open 项与新增项，避免逐轮人肉翻旧报告。
 
 ## Python 环境
 
@@ -35,4 +37,8 @@
 .venv/Scripts/python.exe scripts/thesis_review.py init-run papers/<file> --title "题目" --field "专业"
 .venv/Scripts/python.exe scripts/thesis_review.py lint ingest/<slug>.md
 .venv/Scripts/python.exe scripts/thesis_review.py render runs/<id>
+.venv/Scripts/python.exe scripts/thesis_review.py ledger add --severity major --location "<章节>" --problem "<描述>"
+.venv/Scripts/python.exe scripts/thesis_review.py ledger close --id M-01 --run <run_id> --note "<闭环依据>"
+.venv/Scripts/python.exe scripts/thesis_review.py sanitize
+.venv/Scripts/python.exe scripts/thesis_review.py doctor
 ```

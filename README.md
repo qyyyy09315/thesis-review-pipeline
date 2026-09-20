@@ -115,10 +115,13 @@ Unix：
 
 | 子命令 | 作用 |
 | --- | --- |
-| `ingest <file>` | 把 `.md` `.txt` `.tex` `.typ` `.pdf` `.docx` 归一为 UTF-8 Markdown，写入 `ingest/` |
+| `ingest <file>` | 把 `.md` `.txt` `.tex` `.typ` `.pdf` `.docx` 归一为 UTF-8 Markdown，写入 `ingest/`；`--versioned` 追加时间戳后缀，避免同名覆盖历史版本 |
 | `lint <file>` | Stage 1 机械预检；`--json` 输出结构化结果 |
-| `init-run <file>` | ingest + lint + 分审骨架 + 初稿报告 |
+| `init-run <file>` | ingest + lint + 分审骨架 + 初稿报告；定级记为「待深审」，机械预检只给建议定级（`grade_suggested`） |
 | `render <run_dir>` | 根据 `agents/*.json` 重渲染四段式报告 |
+| `ledger add/close/list` | 跨轮问题台账（`docs/ledger.json`）：登记 / 闭环 / 查看 Major、Minor 的生命周期，报告自动附「跨轮遗留」表 |
+| `sanitize [files]` | 把 `docs/worklog.md` 等文件中的本机绝对路径清洗为可入库的相对写法；提交前必跑 |
+| `doctor` | 体检：runs 与 worklog 对账、绝对路径泄漏扫描、consolidator 状态校验 |
 | `audit <file>` | 可选封装 `paper-audit`，仅 `.tex` / `.typ` / `.pdf` |
 
 `.tex` / `.typ` / `.pdf` 需要 `paper-audit` 机械层时：
@@ -170,6 +173,8 @@ Unix：
 
 五维评分卡（1–5）：问题定义、文献综述、方法严密性、实验充分度、写作规范。`init-run` 按预检自动打分，深审可在 `consolidator.json` 覆盖。
 
+深审完成后把 `consolidator.json` 的 `status` 改为 `done`：此时 `majors` / `minors` 为空列表即表示「深审确认无」，render 不再回退到机械预检兜底；预检的结构缺口需逐项写入 `linter_triage`（accept / reject + 依据），被 reject 的误报不得进入报告。
+
 结构缺口中，`problem_formulation` / `related_work` / `ablation` / `baseline` 默认 Major；未定义符号默认 Minor，若出现在损失函数或定理陈述中则升 Major；过强断言且缺数字、缺引用为 Major。
 
 ## 硬约束
@@ -181,7 +186,7 @@ Unix：
 | 不编造文献 | 不得虚构 DOI、基线成绩或审稿人原话 |
 | 默认离线 | 未获用户明确授权不得 `--online` / 文献外搜 |
 | 工作日志 | 每次 CLI 或实质性审稿步骤必须追加 `docs/worklog.md` |
-| 隐私 | 真实学生论文、学号、姓名、学校内部材料不得提交 git |
+| 隐私 | 真实学生论文、学号、姓名、学校内部材料不得提交 git；日志与 metadata 只写相对路径，提交前跑 `sanitize` + `doctor` |
 
 ## 测试
 
