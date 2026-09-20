@@ -53,3 +53,23 @@ def test_defined_symbol_is_not_flagged():
     symbols = {item.symbol for item in result.undefined_symbols}
     assert "L_ce" not in symbols
     assert "Lce" not in symbols
+
+
+def test_realistic_formulation_wording_is_recognized():
+    """真实工科稿常见写法「输入为/输出为/问题描述」应视为已形式化。"""
+    text = "第一章 绪论\n1.2 问题描述\n输入为轴承振动信号，输出为故障类别。"
+    result = lint_text(text)
+    keys = {g.key for g in result.structure_gaps}
+    assert "problem_formulation" not in keys
+
+
+def test_variant_wording_counts_as_ablation_signal():
+    text = "第四章 实验设计\n通过移除各模块构建三种变体，验证模块贡献。"
+    result = lint_text(text)
+    assert "ablation" not in {g.key for g in result.structure_gaps}
+
+
+def test_fold_mean_wording_counts_as_variance_signal():
+    text = "第五章 结果\n十折交叉验证取折平均，报告平均准确率与标准差。"
+    result = lint_text(text)
+    assert "variance" not in {g.key for g in result.structure_gaps}

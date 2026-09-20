@@ -36,12 +36,30 @@ OVERCLAIM_PATTERNS: tuple[tuple[str, str], ...] = (
     ("OC9", r"we (?:first|for the first time) propose"),
 )
 STRUCTURE_SIGNALS: dict[str, tuple[str, ...]] = {
-    "related_work": ("相关工作", "文献综述", "研究现状", "related work"),
-    "ablation": ("消融", "ablation"),
-    "baseline": ("基线", "baseline", "对比方法", "对比算法", "对比实验"),
-    "failure_case": ("失效", "失败案例", "failure case", "limitation", "局限"),
-    "variance": ("方差", "标准差", "误差棒", "error bar", "std", "±"),
-    "problem_formulation": ("形式化", "问题定义", "输入输出", "problem formulation"),
+    "related_work": (
+        "相关工作", "文献综述", "研究现状", "related work",
+        "国内外研究", "研究进展", "已有研究", "近年来", "学者提出",
+    ),
+    "ablation": (
+        "消融", "ablation",
+        "去除", "移除", "单独使用", "仅使用", "各模块", "变体", "模块贡献",
+    ),
+    "baseline": (
+        "基线", "baseline", "对比方法", "对比算法", "对比实验",
+        "对照组", "传统方法", "现有方法", "主流方法", "常用于",
+    ),
+    "failure_case": (
+        "失效", "失败案例", "failure case", "limitation", "局限",
+        "误判", "误报", "漏检", "异常情况", "错误案例",
+    ),
+    "variance": (
+        "方差", "标准差", "误差棒", "error bar", "std", "±",
+        "均值", "平均准确率", "重复实验", "交叉验证", "折平均", "稳定性", "置信区间",
+    ),
+    "problem_formulation": (
+        "形式化", "问题定义", "输入输出", "problem formulation",
+        "问题描述", "任务定义", "输入为", "输出为", "建模", "定义如下", "研究内容",
+    ),
 }
 COMMON_DEFINED = {
     "x",
