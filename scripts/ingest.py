@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import re
+from datetime import datetime
 from pathlib import Path
 
 
@@ -15,7 +16,18 @@ def slugify(value: str) -> str:
     return slug or "paper"
 
 
-def ingest_file(src: Path, dest_dir: Path) -> Path:
+def _versioned_dest(dest_dir: Path, stem_slug: str) -> Path:
+    """Pick `slug-YYYYmmdd-HHMMSS.md`; bump a counter if taken the same second."""
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    dest = dest_dir / f"{stem_slug}-{stamp}.md"
+    counter = 1
+    while dest.exists():
+        dest = dest_dir / f"{stem_slug}-{stamp}-{counter}.md"
+        counter += 1
+    return dest
+
+
+def ingest_file(src: Path, dest_dir: Path, versioned: bool = False) -> Path:
     src = src.resolve()
     if not src.is_file():
         raise FileNotFoundError(src)
@@ -23,7 +35,11 @@ def ingest_file(src: Path, dest_dir: Path) -> Path:
     if suffix not in SUPPORTED:
         raise ValueError(f"不支持的格式: {suffix}. 支持 {sorted(SUPPORTED)}")
     dest_dir.mkdir(parents=True, exist_ok=True)
-    dest = dest_dir / f"{slugify(src.stem)}.md"
+    stem_slug = slugify(src.stem)
+    if versioned:
+        dest = _versioned_dest(dest_dir, stem_slug)
+    else:
+        dest = dest_dir / f"{stem_slug}.md"
     if suffix in {".md", ".markdown", ".txt", ".tex", ".typ"}:
         dest.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
         return dest
@@ -68,8 +84,13 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ingest a thesis into Markdown")
     parser.add_argument("file", type=Path)
     parser.add_argument("--out-dir", type=Path, default=Path("ingest"))
+    parser.add_argument(
+        "--versioned",
+        action="store_true",
+        help="输出文件名追加时间戳后缀，避免同名覆盖丢失历史版本",
+    )
     args = parser.parse_args(argv)
-    dest = ingest_file(args.file, args.out_dir)
+    dest = ingest_file(args.file, args.out_dir, versioned=args.versioned)
     print(dest)
     return 0
 

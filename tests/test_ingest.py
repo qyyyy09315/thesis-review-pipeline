@@ -14,3 +14,11 @@ def test_ingest_markdown_roundtrip(tmp_path: Path):
     text = dest.read_text(encoding="utf-8")
     assert "图像分类" in text
     assert dest.suffix == ".md"
+
+
+def test_ingest_versioned_avoids_overwrite(tmp_path: Path):
+    first = ingest_file(FIXTURE, tmp_path, versioned=True)
+    second = ingest_file(FIXTURE, tmp_path, versioned=True)
+    assert first != second
+    assert first.exists() and second.exists()
+    assert first.stem.startswith("sample_thesis-")

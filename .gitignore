@@ -28,3 +28,4 @@ runs/*
 # Local-only helpers; not part of the public CLI
 scripts/_scan_pii.py
 scripts/_scrub_paths.py
+.workbuddy/

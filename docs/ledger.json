@@ -1,0 +1,14 @@
+{
+  "issues": [
+    {
+      "id": "N-01",
+      "severity": "minor",
+      "location": "5.6 第三段",
+      "problem": "「台架特异性 / 显式物理特征提供跨台架不变边界」表述超出对齐实验支持范围，v20 会话标记本轮未要求改，仍待收敛。",
+      "status": "open",
+      "first_seen": "v20-会话",
+      "closed_in": "",
+      "close_note": ""
+    }
+  ]
+}
