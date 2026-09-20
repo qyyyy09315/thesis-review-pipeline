@@ -7,6 +7,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
+from ledger import open_issues
 from scorecard import build_scorecard, evidence_rows, render_html
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,13 +38,25 @@ def collect_context(run_dir: Path) -> dict:
     a = _load_json(run_dir / "agents" / "agent_a_motivation.json")
     b = _load_json(run_dir / "agents" / "agent_b_methodology.json")
     c = _load_json(run_dir / "agents" / "agent_c_experiments.json")
-    majors = cons.get("majors") or _harvest_findings([a, b, c], "major")
-    minors = cons.get("minors") or _harvest_findings([a, b, c], "minor")
-    if not majors:
-        majors = _majors_from_lint(lint)
-    if not minors:
-        minors = _minors_from_lint(lint)
-    grade = cons.get("grade") or _suggest_grade(lint, majors)
+    # 深审完成（status == "done"）后，consolidator 的结论是终审意见：
+    # majors/minors 为空列表表示「确认无」，绝不能回退到机械预检兜底。
+    # 深审未完成（pending）时才允许 A/B/C findings 与 linter 逐级兜底。
+    deep_done = str(cons.get("status", "")).lower() == "done"
+    majors = cons.get("majors")
+    minors = cons.get("minors")
+    if majors is None or (not majors and not deep_done):
+        majors = _harvest_findings([a, b, c], "major")
+    if minors is None or (not minors and not deep_done):
+        minors = _harvest_findings([a, b, c], "minor")
+    if not deep_done:
+        if not majors:
+            majors = _majors_from_lint(lint)
+        if not minors:
+            minors = _minors_from_lint(lint)
+    if not cons.get("grade"):
+        grade = _suggest_grade(lint, majors)
+    else:
+        grade = cons.get("grade")
     summary = cons.get("contribution_summary") or (
         f"本稿题为《{meta.get('title') or lint.get('title') or '未命名'}》，"
         f"领域为{meta.get('field') or '未标注'}。"
@@ -63,6 +76,7 @@ def collect_context(run_dir: Path) -> dict:
         "title": meta.get("title") or lint.get("title") or "未命名",
         "field": meta.get("field") or "未标注",
         "grade": grade,
+        "deep_done": deep_done,
         "contribution_summary": summary,
         "grade_reason": reason,
         "majors": majors,
@@ -70,6 +84,8 @@ def collect_context(run_dir: Path) -> dict:
         "roadmap": roadmap,
         "scorecard": scorecard,
         "evidence_map": evidence_map,
+        "linter_triage": cons.get("linter_triage") or [],
+        "open_ledger": open_issues(),
         "lint": lint,
         "meta": meta,
     }

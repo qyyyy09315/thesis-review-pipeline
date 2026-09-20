@@ -10,6 +10,16 @@
 
 定级理由：{{ grade_reason }}
 
+{% if linter_triage %}
+**Stage 1 机械预检对账（深审逐项复核）**
+
+| 预检项 | 判定 | 复核说明 |
+| --- | --- | --- |
+{% for t in linter_triage %}
+| {{ t.key }} | {{ t.verdict }} | {{ t.reason }} |
+{% endfor %}
+
+{% endif %}
 **五维评分卡（1–5，预检自动打分，深审可覆盖）**
 
 | 维度 | 分数 | 依据 |
@@ -27,6 +37,8 @@
    【理论/学术依据】{{ item.basis }}
    【建议改进措施】{{ item.action }}
 {% endfor %}
+{% elif deep_done %}
+（深审确认：无 Major。）
 {% else %}
 （深审尚未写入 Major。请先完成 Agent A/B/C，再运行 render。）
 {% endif %}
@@ -37,6 +49,8 @@
 {% for item in minors %}
 {{ loop.index }}. 【{{ item.location }}】{{ item.problem }}
 {% endfor %}
+{% elif deep_done %}
+（深审确认：无 Minor。）
 {% else %}
 （暂无 Minor。）
 {% endif %}
@@ -68,3 +82,13 @@
 {% for step in roadmap.writing %}
 - {{ step }}
 {% endfor %}
+
+{% if open_ledger %}
+**跨轮遗留（docs/ledger.json 未闭环项）**
+
+| ID | 级别 | 定位 | 问题 | 首见 |
+| --- | --- | --- | --- | --- |
+{% for it in open_ledger %}
+| {{ it.id }} | {{ it.severity }} | {{ it.location }} | {{ it.problem }} | {{ it.first_seen }} |
+{% endfor %}
+{% endif %}

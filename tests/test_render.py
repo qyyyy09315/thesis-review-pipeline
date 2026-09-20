@@ -45,3 +45,67 @@ def test_init_like_render_has_four_sections(tmp_path: Path):
     html = (run_dir / "review_report.html").read_text(encoding="utf-8")
     assert "五维评分卡" in html
     assert (run_dir / "stage3" / "scorecard.json").exists()
+
+
+def _prepare_run(tmp_path: Path) -> Path:
+    ingest_md = ingest_file(FIXTURE, tmp_path / "ingest")
+    run_dir = create_run(
+        paper_src=FIXTURE,
+        ingest_md=ingest_md,
+        slug=slugify(FIXTURE.stem),
+        title="样例论文",
+        field="计算机科学与技术",
+        runs_dir=tmp_path / "runs",
+    )
+    lint = lint_file(run_dir / "paper.md")
+    (run_dir / "stage1" / "linter.json").write_text(
+        json.dumps(lint.to_dict(), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    return run_dir
+
+
+def test_done_consolidator_empty_majors_is_respected(tmp_path: Path):
+    """status=done 且 majors=[] 表示深审确认无，机械兜底不得回填假 Major。"""
+    run_dir = _prepare_run(tmp_path)
+    cons_path = run_dir / "agents" / "consolidator.json"
+    cons = json.loads(cons_path.read_text(encoding="utf-8"))
+    cons.update(
+        {
+            "status": "done",
+            "grade": "良好",
+            "contribution_summary": "深审摘要。",
+            "grade_reason": "复核通过。",
+        }
+    )
+    cons_path.write_text(json.dumps(cons, ensure_ascii=False, indent=2), encoding="utf-8")
+    report = render_report(run_dir)
+    text = report.read_text(encoding="utf-8")
+    assert "深审确认：无 Major。" in text
+    assert "结构缺口/" not in text
+    html = (run_dir / "review_report.html").read_text(encoding="utf-8")
+    assert "深审确认：无 Major" in html
+
+
+def test_pending_consolidator_still_falls_back(tmp_path: Path):
+    """status=pending 时保持旧契约：结构缺口以机械 Major 形式进入初稿报告。"""
+    run_dir = _prepare_run(tmp_path)
+    report = render_report(run_dir)
+    text = report.read_text(encoding="utf-8")
+    assert "结构缺口/" in text
+    assert "深审确认" not in text
+
+
+def test_linter_triage_surface(tmp_path: Path):
+    """consolidator.linter_triage 应出现在报告的预检对账表中。"""
+    run_dir = _prepare_run(tmp_path)
+    cons_path = run_dir / "agents" / "consolidator.json"
+    cons = json.loads(cons_path.read_text(encoding="utf-8"))
+    cons["linter_triage"] = [
+        {"key": "problem_formulation", "verdict": "reject", "reason": "5.1 已定义输入输出。"}
+    ]
+    cons_path.write_text(json.dumps(cons, ensure_ascii=False, indent=2), encoding="utf-8")
+    report = render_report(run_dir)
+    text = report.read_text(encoding="utf-8")
+    assert "机械预检对账" in text
+    assert "problem_formulation" in text

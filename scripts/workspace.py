@@ -81,9 +81,10 @@ def _empty_agent_payload(name: str) -> dict:
     if name.startswith("consolidator"):
         return {
             "status": "pending",
-            "grade": "退修",
+            "grade": None,
             "contribution_summary": "",
             "grade_reason": "",
+            "linter_triage": [],
             "majors": [],
             "minors": [],
             "roadmap": {

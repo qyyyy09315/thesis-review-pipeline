@@ -138,11 +138,34 @@ def render_html(ctx: dict) -> str:
             "<p><strong>【建议改进措施】</strong>"
             f"{html_escape(item.get('action', ''))}</p></li>"
         )
+    if not major_blocks:
+        if ctx.get("deep_done"):
+            major_blocks.append("<li>（深审确认：无 Major。）</li>")
+        else:
+            major_blocks.append("<li>（深审尚未写入 Major，请先完成 Agent A/B/C 再 render。）</li>")
     minor_blocks = []
     for i, item in enumerate(ctx.get("minors") or [], start=1):
         minor_blocks.append(
             f"<li><strong>【{html_escape(item.get('location', ''))}】</strong>"
             f"{html_escape(item.get('problem', ''))}</li>"
+        )
+    if not minor_blocks:
+        if ctx.get("deep_done"):
+            minor_blocks.append("<li>（深审确认：无 Minor。）</li>")
+        else:
+            minor_blocks.append("<li>（暂无 Minor。）</li>")
+    triage_rows = "".join(
+        f"<tr><td>{html_escape(t.get('key', ''))}</td>"
+        f"<td>{html_escape(t.get('verdict', ''))}</td>"
+        f"<td>{html_escape(t.get('reason', ''))}</td></tr>"
+        for t in ctx.get("linter_triage") or []
+    )
+    triage_section = ""
+    if triage_rows:
+        triage_section = (
+            "<h4>Stage 1 机械预检对账（深审逐项复核）</h4>"
+            "<table><thead><tr><th>预检项</th><th>判定</th><th>复核说明</th></tr></thead>"
+            f"<tbody>{triage_rows}</tbody></table>"
         )
     ev_rows = "".join(
         f"<tr><td>{html_escape(r['severity'])}</td>"
@@ -153,6 +176,22 @@ def render_html(ctx: dict) -> str:
     roadmap = ctx.get("roadmap") or {}
     def _ul(items: list) -> str:
         return "<ul>" + "".join(f"<li>{html_escape(x)}</li>" for x in items or []) + "</ul>"
+
+    ledger_rows = "".join(
+        f"<tr><td>{html_escape(it.get('id', ''))}</td>"
+        f"<td>{html_escape(it.get('severity', ''))}</td>"
+        f"<td>{html_escape(it.get('location', ''))}</td>"
+        f"<td>{html_escape(it.get('problem', ''))}</td>"
+        f"<td>{html_escape(it.get('first_seen', ''))}</td></tr>"
+        for it in ctx.get("open_ledger") or []
+    )
+    ledger_section = ""
+    if ledger_rows:
+        ledger_section = (
+            "<h4>跨轮遗留（docs/ledger.json 未闭环项）</h4>"
+            "<table><thead><tr><th>ID</th><th>级别</th><th>定位</th><th>问题</th><th>首见</th></tr></thead>"
+            f"<tbody>{ledger_rows}</tbody></table>"
+        )
 
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -178,9 +217,10 @@ th {{ background: #f4f4f4; text-align: left; }}
 <table><thead><tr><th>维度</th><th>分数</th><th>依据</th></tr></thead>
 <tbody>{score_rows}</tbody></table>
 <h3>二、 实质性修改意见（Major Comments - 关乎学术严谨性与论证逻辑）</h3>
-<ol>{"".join(major_blocks) or "<li>（无 Major）</li>"}</ol>
+<ol>{"".join(major_blocks)}</ol>
 <h3>三、 规范性与细节性修改意见（Minor Comments - 关乎格式、符号与表达）</h3>
-<ol>{"".join(minor_blocks) or "<li>（暂无 Minor。）</li>"}</ol>
+<ol>{"".join(minor_blocks)}</ol>
+{triage_section}
 <h4>问题–证据表</h4>
 <table><thead><tr><th>级别</th><th>定位</th><th>问题</th></tr></thead>
 <tbody>{ev_rows}</tbody></table>
@@ -191,5 +231,6 @@ th {{ background: #f4f4f4; text-align: left; }}
 {_ul(roadmap.get("experiments"))}
 <p><strong>文本与结构精修</strong></p>
 {_ul(roadmap.get("writing"))}
+{ledger_section}
 </body></html>
 """

@@ -14,3 +14,19 @@ python scripts/thesis_review.py render runs/<id>
 - 定级只能是：优秀 / 良好 / 及格 / 退修。
 - 机械预检单独不得给「优秀」。
 - 每条 Major 必须能映射到路线图中的一条可执行步骤。
+
+## 深审完成标记与预检对账
+
+- 深审结束把 `status` 从 `pending` 改为 `done`。`done` 之后 `majors` / `minors`
+  为空列表即表示「深审确认无」，render 不再回退到机械预检兜底。
+- 对 Stage 1 的每条结构缺口（`stage1/linter.json` 的 `structure_gaps`），逐项
+  写入 `linter_triage`：确认属实填 `accept`；属关键词误报填 `reject` 并给出
+  依据（如「5.1 已给出输入/输出定义」）。`reject` 项不得以任何形式进入 Major。
+- 示例：
+
+```json
+"linter_triage": [
+  {"key": "problem_formulation", "verdict": "reject", "reason": "5.1 已定义输入输出与符号表，docx 抽取丢失写法所致。"},
+  {"key": "related_work", "verdict": "accept", "reason": "1.3 综述仍偏罗列，保留 Major。"}
+]
+```
