@@ -181,6 +181,89 @@ def cmd_ledger(args: argparse.Namespace) -> int:
     return 0
 
 
+_CODE_STATUS_DONE = {"missing", "partial", "checked"}
+_CODE_VERDICTS = {"match", "mismatch", "unverifiable"}
+_CODE_ABSENCE_MARKERS = ("代码", "日志", "配置", "对账", "结果文件", "脚本", "csv", "CSV")
+
+
+def code_audit_problems(run_dir: Path) -> list[str]:
+    """Flag a finished deep review that never tied reported numbers to code.
+
+    Runs written before this field existed have no `code_status` and are skipped.
+    """
+    cons_path = run_dir / "agents" / "consolidator.json"
+    agent_path = run_dir / "agents" / "agent_c_experiments.json"
+    if not cons_path.is_file() or not agent_path.is_file():
+        return []
+    cons = json.loads(cons_path.read_text(encoding="utf-8"))
+    if str(cons.get("status", "")).lower() != "done":
+        return []
+    agent_c = json.loads(agent_path.read_text(encoding="utf-8"))
+    if "code_status" not in agent_c:
+        return []
+    run_id = run_dir.name
+    status = str(agent_c.get("code_status") or "").strip().lower()
+    if status not in _CODE_STATUS_DONE:
+        return [
+            f"[code] {run_id} 深审已 done，但 code_status={agent_c.get('code_status')!r}"
+            "（须为 missing、partial 或 checked）"
+        ]
+    rows = agent_c.get("code_correspondence")
+    if not isinstance(rows, list):
+        return [f"[code] {run_id} code_correspondence 不是数组"]
+    if status == "missing":
+        note = str(agent_c.get("code_note") or "").strip()
+        problems = []
+        if not note:
+            problems.append(f"[code] {run_id} code_status=missing 但 code_note 为空")
+        if agent_c.get("quantitative_claims", True) and not _mentions_code_gap(cons, agent_c):
+            problems.append(
+                f"[code] {run_id} 定量结果无法对账，但 Major 未记录缺失的代码或结果文件"
+            )
+        return problems
+    problems = []
+    if not rows:
+        problems.append(f"[code] {run_id} code_status={status} 但 code_correspondence 为空")
+        return problems
+    saw_unverifiable = False
+    saw_mismatch = False
+    for index, row in enumerate(rows, start=1):
+        if not isinstance(row, dict):
+            problems.append(f"[code] {run_id} 对账第 {index} 行不是对象")
+            continue
+        for key in ("claim", "paper_value", "code_ref", "verdict"):
+            if not str(row.get(key) or "").strip():
+                problems.append(f"[code] {run_id} 对账第 {index} 行缺 {key}")
+        verdict = str(row.get("verdict") or "").strip().lower()
+        if verdict and verdict not in _CODE_VERDICTS:
+            problems.append(f"[code] {run_id} 对账第 {index} 行 verdict 非法: {row.get('verdict')!r}")
+        if verdict == "mismatch":
+            saw_mismatch = True
+            if "code_value" not in row or not str(row.get("code_value") or "").strip():
+                problems.append(f"[code] {run_id} 对账第 {index} 行 mismatch 未给出 code_value")
+        if verdict == "unverifiable":
+            saw_unverifiable = True
+    if status == "checked" and saw_unverifiable:
+        problems.append(f"[code] {run_id} code_status=checked 仍有 unverifiable 行，应改为 partial")
+    if saw_mismatch and not _mentions_code_gap(cons, agent_c):
+        problems.append(f"[code] {run_id} 存在 mismatch，但 Major 未记录论文数字与代码不一致")
+    return problems
+
+
+def _mentions_code_gap(cons: dict, agent_c: dict) -> bool:
+    texts: list[str] = []
+    for item in cons.get("majors") or []:
+        if isinstance(item, dict):
+            texts.append(str(item.get("problem") or ""))
+            texts.append(str(item.get("location") or ""))
+    for item in agent_c.get("findings") or []:
+        if isinstance(item, dict) and str(item.get("severity", "")).lower() == "major":
+            texts.append(str(item.get("problem") or ""))
+            texts.append(str(item.get("location") or ""))
+    blob = "\n".join(texts)
+    return any(marker in blob for marker in _CODE_ABSENCE_MARKERS)
+
+
 def cmd_doctor(args: argparse.Namespace) -> int:
     del args  # doctor takes no options today; kept for parser symmetry.
     problems: list[str] = []
@@ -208,6 +291,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         if status not in {"pending", "done"}:
             run_id = cons_path.parents[1].name
             problems.append(f"[schema] {run_id} consolidator.status 异常: {cons.get('status')!r}")
+        problems.extend(code_audit_problems(cons_path.parents[1]))
     if problems:
         print("\n".join(problems))
         print(f"\ndoctor：发现 {len(problems)} 个问题。")
@@ -264,7 +348,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_led.add_argument("--ledger", default="", help="自定义台账路径（默认 docs/ledger.json）")
     p_led.set_defaults(func=cmd_ledger)
 
-    p_doc = sub.add_parser("doctor", help="体检：run 日志对账、绝对路径泄漏、consolidator 状态")
+    p_doc = sub.add_parser(
+        "doctor",
+        help="体检：run 日志对账、绝对路径泄漏、consolidator 状态、实验数字与代码对账",
+    )
     p_doc.set_defaults(func=cmd_doctor)
 
     p_aud = sub.add_parser("audit", help="可选：调用 paper-audit（仅 tex/typ/pdf）")

@@ -19,6 +19,7 @@
 6. **隐私**：真实学生论文、学号、姓名、学校内部材料不得提交 git。`papers/` 与后续 `runs/` 已被 `.gitignore` 忽略（样例除外）。日志与 metadata 只写相对路径；**提交前必跑 `sanitize` 清洗绝对路径，再跑 `doctor` 确认对账干净**。
 7. **深审闭环**：深审完成后把 `consolidator.json` 的 `status` 改为 `done`；预检结构缺口逐项写入 `linter_triage`（accept/reject + 依据），误报不得以 Major 形式进入报告。
 8. **跨轮台账**：新发现的 Major/Minor 用 `ledger add` 登记，闭环用 `ledger close`；深审只处理 `ledger list` 中的 open 项与新增项，避免逐轮人肉翻旧报告。
+9. **实验数字对代码**：Agent C 填写 `code_correspondence`，把正文和表格中的定量结果对到脚本、配置、日志或结果文件。对不上记 Major；没有代码则 `code_status=missing`，不得写成已复核。作者修订说明不能代替打开结果文件。历史 run 无 `code_status` 时 `doctor` 不追溯。
 
 ## Python 环境
 

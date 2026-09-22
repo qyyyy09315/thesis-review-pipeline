@@ -130,3 +130,89 @@ def test_doctor_clean_workspace(tmp_path: Path, monkeypatch, capsys):
     rc = main(["doctor"])
     assert rc == 0
     assert "一切正常" in capsys.readouterr().out
+
+
+def _done_run(tmp_path: Path, monkeypatch, agent_c: dict) -> None:
+    monkeypatch.setattr(thesis_review, "ROOT", tmp_path)
+    log = tmp_path / "docs" / "worklog.md"
+    log.parent.mkdir(parents=True)
+    log.write_text("init-run → 20260101-000000-x\n", encoding="utf-8")
+    monkeypatch.setattr(worklog, "GLOBAL_LOG", log)
+    run_dir = tmp_path / "runs" / "20260101-000000-x"
+    (run_dir / "agents").mkdir(parents=True)
+    (run_dir / "metadata.json").write_text(
+        json.dumps({"source": "papers/a.md", "ingest": "ingest/a.md"}),
+        encoding="utf-8",
+    )
+    (run_dir / "agents" / "consolidator.json").write_text(
+        json.dumps({"status": "done", "majors": [], "minors": []}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    (run_dir / "agents" / "agent_c_experiments.json").write_text(
+        json.dumps(agent_c, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
+def test_doctor_flags_done_review_without_code_audit(tmp_path: Path, monkeypatch, capsys):
+    _done_run(
+        tmp_path,
+        monkeypatch,
+        {"status": "done", "code_status": "pending", "code_correspondence": []},
+    )
+    rc = main(["doctor"])
+    assert rc == 1
+    assert "code_status" in capsys.readouterr().out
+
+
+def test_doctor_accepts_legacy_done_review_without_code_field(tmp_path: Path, monkeypatch, capsys):
+    _done_run(tmp_path, monkeypatch, {"status": "done", "findings": []})
+    rc = main(["doctor"])
+    assert rc == 0
+    assert "一切正常" in capsys.readouterr().out
+
+
+def test_doctor_accepts_matched_code_correspondence(tmp_path: Path, monkeypatch, capsys):
+    _done_run(
+        tmp_path,
+        monkeypatch,
+        {
+            "status": "done",
+            "quantitative_claims": True,
+            "code_status": "checked",
+            "code_correspondence": [
+                {
+                    "claim": "表5.1 macro-F1",
+                    "paper_value": "0.812",
+                    "code_ref": "results/main/foldmean.csv",
+                    "code_value": "0.812",
+                    "verdict": "match",
+                }
+            ],
+        },
+    )
+    rc = main(["doctor"])
+    assert rc == 0
+
+
+def test_doctor_flags_mismatch_without_major(tmp_path: Path, monkeypatch, capsys):
+    _done_run(
+        tmp_path,
+        monkeypatch,
+        {
+            "status": "done",
+            "code_status": "checked",
+            "code_correspondence": [
+                {
+                    "claim": "表5.1 macro-F1",
+                    "paper_value": "0.812",
+                    "code_ref": "results/main/foldmean.csv",
+                    "code_value": "0.790",
+                    "verdict": "mismatch",
+                }
+            ],
+        },
+    )
+    rc = main(["doctor"])
+    assert rc == 1
+    assert "mismatch" in capsys.readouterr().out

@@ -71,12 +71,14 @@ flowchart LR
 4. 按 `templates/agents/` 填写：
    - A → `agents/agent_a_motivation.json`（绪论与相关工作）
    - B → `agents/agent_b_methodology.json`（方法 / 模型 / 系统）
-   - C → `agents/agent_c_experiments.json`（实验与分析）
+   - C → `agents/agent_c_experiments.json`（实验与分析）。定量结果先写入 `code_correspondence`，再写 findings
    - 聚合 → `agents/consolidator.json`
 5. 运行 `render`。核对报告含且仅含合同规定的四级标题。
 6. CLI 会向 `docs/worklog.md` 追加一条；深审结束后再补一条人工摘要。日志与 `metadata.json` 只写相对路径。
 
 Major 每条必须含：章节或公式、图表定位；原文摘引；问题；理论或学术依据；可执行的改法。找不到证据就不要写。同一根因只保留一条 Major，附全部定位。
+
+实验章的数字还要和代码对上。Agent C 在 `code_correspondence` 里登记主结果、消融和正文引用的增益，每行指向脚本、配置、日志或结果文件。`verdict` 为 `mismatch` 时记 Major。没有可核对文件时 `code_status=missing`，定量主张不得写成已复核。作者修订说明不能代替结果文件。`doctor` 在深审标成 `done` 后检查该字段；没有 `code_status` 的历史 run 不追溯。
 
 ## 环境
 
@@ -121,7 +123,7 @@ Unix：
 | `render <run_dir>` | 根据 `agents/*.json` 重渲染四段式报告 |
 | `ledger add/close/list` | 跨轮问题台账（`docs/ledger.json`）：登记 / 闭环 / 查看 Major、Minor 的生命周期，报告自动附「跨轮遗留」表 |
 | `sanitize [files]` | 把 `docs/worklog.md` 等文件中的本机绝对路径清洗为可入库的相对写法；提交前必跑 |
-| `doctor` | 体检：runs 与 worklog 对账、绝对路径泄漏扫描、consolidator 状态校验 |
+| `doctor` | 体检：runs 与 worklog 对账、绝对路径泄漏、consolidator 状态，以及深审完成后的实验数字与代码对账 |
 | `audit <file>` | 可选封装 `paper-audit`，仅 `.tex` / `.typ` / `.pdf` |
 
 `.tex` / `.typ` / `.pdf` 需要 `paper-audit` 机械层时：
@@ -187,6 +189,7 @@ Unix：
 | 默认离线 | 未获用户明确授权不得 `--online` / 文献外搜 |
 | 工作日志 | 每次 CLI 或实质性审稿步骤必须追加 `docs/worklog.md` |
 | 隐私 | 真实学生论文、学号、姓名、学校内部材料不得提交 git；日志与 metadata 只写相对路径，提交前跑 `sanitize` + `doctor` |
+| 实验数字对代码 | 定量结果须对到脚本、配置、日志或结果文件；对不上或无法对账记 Major，修订说明不能代替结果文件 |
 
 ## 测试
 

@@ -14,6 +14,9 @@ python scripts/thesis_review.py render runs/<id>
 - 定级只能是：优秀 / 良好 / 及格 / 退修。
 - 机械预检单独不得给「优秀」。
 - 每条 Major 必须能映射到路线图中的一条可执行步骤。
+- 读 Agent C 的 `code_correspondence`。`mismatch` 去重后写入 Major，路线图的实验项写明要改的表和文件。
+- `code_status` 为 `missing` 或 `partial` 时，未核对的定量主张不得写成已复核。
+- 把 `status` 改为 `done` 之前，`code_status` 必须是 `missing`、`partial` 或 `checked`。没有该字段的历史 run 不追溯。
 
 ## 深审完成标记与预检对账
 

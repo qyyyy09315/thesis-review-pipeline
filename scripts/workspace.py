@@ -93,11 +93,18 @@ def _empty_agent_payload(name: str) -> dict:
                 "writing": [],
             },
         }
-    return {
+    payload = {
         "status": "pending",
         "agent": name,
         "findings": [],
     }
+    if "agent_c" in name:
+        payload["quantitative_claims"] = True
+        payload["code_status"] = "pending"
+        payload["code_roots"] = []
+        payload["code_note"] = ""
+        payload["code_correspondence"] = []
+    return payload
 
 
 def load_meta(run_dir: Path) -> dict:

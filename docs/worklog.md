@@ -457,3 +457,12 @@ render `20260920-093419-draft_v18` → `runs/20260920-093419-draft_v18/review_re
 7. linter 中文信号词典扩充：六类结构缺口各补真实工科 docx 抽取稿常见写法；v18 真实稿结构缺口 6 → 0，机械定级与深审「良好」背离根除。
 
 新增 `.github/workflows/ci.yml`（pytest + doctor）；README / AGENTS.md / thesis-review SKILL.md 已同步新命令与合同。只审不改；未 online。
+
+## 2026-09-22 会话：实验数字必须对上代码
+
+深审不再只看实验章节和修订说明。Agent C 新增必填 `code_correspondence`：主结果、消融和正文增益逐条对到脚本、配置、日志或结果文件。
+
+- `code_status`：`pending` / `missing` / `partial` / `checked`。`mismatch` 记 Major；没有代码则 `missing`，定量主张不得写成已复核。
+- `doctor` 在 `consolidator.status=done` 时检查该字段。没有 `code_status` 的历史 run 不追溯，当前工作区 doctor 仍为全绿。
+- 合同写入 `templates/agents/agent_c_experiments.md`、`consolidator.md`、`AGENTS.md`、`README.md`，以及 `.agents` / `.zcode` / 用户级 `thesis-review` 技能。
+- 测试 32 passed。只审不改；未改 `papers/`。

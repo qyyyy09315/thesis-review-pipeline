@@ -1,6 +1,6 @@
 ---
 name: thesis-review
-description: 高水平本科毕业设计/学位论文初稿审稿与挑刺。用于校级优秀、答辩评阅、四段式审稿报告、消融缺失诊断、符号预检、二稿修改路线图；用户说审稿、评阅、毕业设计评审时使用。
+description: 高水平本科毕业设计/学位论文初稿审稿与挑刺。用于校级优秀、答辩评阅、四段式审稿报告、消融缺失诊断、符号预检、实验数字与代码或日志对不上、二稿修改路线图；用户说审稿、评阅、毕业设计评审时使用。
 ---
 
 # 本科毕业设计审稿工作流
@@ -40,11 +40,22 @@ ingest → Stage1 linter → Agent A/B/C 分审 → consolidator → render 四�
 4. 按 `templates/agents/` 填写：
    - A 动机与文献边界 → `agents/agent_a_motivation.json`
    - B 方法严密性 → `agents/agent_b_methodology.json`
-   - C 实验充分度 → `agents/agent_c_experiments.json`
+   - C 实验充分度 → `agents/agent_c_experiments.json`。定量结果先做代码对账，再写 findings
    - 聚合 → `agents/consolidator.json`
 5. 深审结束把 `consolidator.status` 改为 `done`，并把 Stage 1 每条结构缺口写入 `linter_triage`（accept/reject + 依据）；`done` 后 `majors`/`minors` 空列表 = 确认无，render 不再机械兜底。
 6. 新问题 `ledger add`，已闭环 `ledger close`，再 `render`。核对报告含且仅含 spec 规定的四级标题。
 7. 向 `docs/worklog.md` 追加本轮结论（CLI 已自动写一条；深审结束后再补一条人工摘要）。提交 git 前跑 `sanitize` + `doctor`。
+
+## 实验数字与代码对账
+
+Agent C 在写实验意见之前填写 `code_correspondence`。论文表格、实验报告和作者修订说明都不是终证，打开脚本、配置、日志或结果文件核对。
+
+1. 记录 `code_roots`。用户未给路径时，在工作区及相邻工程目录中查找；仍没有则 `code_status=missing`，`code_note` 写明找过的位置。
+2. 主结果和消融，以及正文里的增益，各占一行。字段为 `claim`、`paper_value`、`code_ref`、`code_value`、`verdict`（`match` / `mismatch` / `unverifiable`）。
+3. `mismatch` 写成 Major，指出论文数字和代码中的数字。`missing` 或 `partial` 时，未核对的定量主张不得写成已复核；论文有定量结果则 Major 写明无法对账。
+4. 纯理论稿设 `quantitative_claims: false`。`consolidator.status=done` 前，`code_status` 必须是 `missing`、`partial` 或 `checked`。`doctor` 检查该字段；没有该字段的历史 run 不追溯。
+
+合同见 `templates/agents/agent_c_experiments.md`。
 
 ## 报告合同
 
@@ -66,6 +77,10 @@ Major 每条：定位 + 具体问题 + 理论/学术依据 + 建议改进措施�
 | 没有摘引也能写 Major | 无定位的意见无法复审 |
 | 补几篇“经典文献”撑场面 | 禁止虚构引用 |
 | 预检通过就是优秀 | 预检只排除机械问题 |
+| 实验章节写清楚了，不必再翻代码 | 数字要和脚本、配置、日志或结果文件一致 |
+| 作者修订说明已经对过 CSV | 修订说明不是证据，打开结果文件 |
+| 仓库里没有代码，就当实验充分 | `code_status=missing`，定量主张记 Major |
+| 只核对主表一行 | 消融和正文增益也要入表；没覆盖的标 `partial` |
 
 `.tex/.typ/.pdf` 需要 `paper-audit` 机械层时：
 
