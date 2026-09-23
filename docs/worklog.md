@@ -37,3 +37,12 @@ runs/ 下 19 个历史 run、上一轮的 ledger.json 与 worklog.md）。跨轮
 `sanitize`（无绝对路径）与 `doctor`（对账干净），并用 `_scan_pii`
 核验：archive/ 真实材料与本地辅助脚本均被 .gitignore 排除，
 待提交集无隐私泄漏。随后推送 GitHub。
+
+---
+
+## 2026-09-23 会话：README 重构去 AI 腔，推送 GitHub
+
+按 qu-ai-wei 技能重写 README 语言：副标题只留「纸上得来终觉浅」原句，
+工作流改文字描述并合成 SVG（docs/assets/workflow.svg），Agent 合同与
+约束改为规范索引，标题缀加中文名「毕设行止」。sanitize 干净、doctor
+通过后推送。未改论文源文件。

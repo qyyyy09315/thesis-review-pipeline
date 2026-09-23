@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="120" viewBox="0 0 900 120" role="img" aria-label="审稿流水线：papers 原稿，ingest 归一，机械预检，A/B/C 分审，consolidator 聚合，四段式报告">
+  <style>
+    text { font-family: "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; text-anchor: middle; }
+    .card { fill: #ffffff; stroke: #d0d7de; }
+    .box { fill: #f6f8fa; stroke: #d0d7de; }
+    .box-agent { fill: #ddf4ff; stroke: #54aeff; }
+    .label { fill: #1f2328; font-size: 13px; }
+    .arr { stroke: #57606a; stroke-width: 1.6; }
+    .arrf { fill: #57606a; }
+    @media (prefers-color-scheme: dark) {
+      .card { fill: #0d1117; stroke: #30363d; }
+      .box { fill: #161b22; stroke: #30363d; }
+      .box-agent { fill: #12233a; stroke: #1f6feb; }
+      .label { fill: #e6edf3; }
+      .arr { stroke: #8b949e; }
+      .arrf { fill: #8b949e; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path class="arrf" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+  </defs>
+
+  <rect class="card" x="0.5" y="0.5" width="899" height="119" rx="12"/>
+
+  <rect class="box" x="60" y="36" width="110" height="44" rx="8"/>
+  <text class="label" x="115" y="63">papers/ 原稿</text>
+
+  <rect class="box" x="194" y="36" width="110" height="44" rx="8"/>
+  <text class="label" x="249" y="63">ingest 归一</text>
+
+  <rect class="box" x="328" y="36" width="110" height="44" rx="8"/>
+  <text class="label" x="383" y="63">Stage 1 预检</text>
+
+  <rect class="box-agent" x="462" y="36" width="110" height="44" rx="8"/>
+  <text class="label" x="517" y="63">A / B / C 分审</text>
+
+  <rect class="box" x="596" y="36" width="110" height="44" rx="8"/>
+  <text class="label" x="651" y="63">consolidator</text>
+
+  <rect class="box" x="730" y="36" width="110" height="44" rx="8"/>
+  <text class="label" x="785" y="63">四段式报告</text>
+
+  <line class="arr" x1="173" y1="58" x2="190" y2="58" marker-end="url(#arrow)"/>
+  <line class="arr" x1="307" y1="58" x2="324" y2="58" marker-end="url(#arrow)"/>
+  <line class="arr" x1="441" y1="58" x2="458" y2="58" marker-end="url(#arrow)"/>
+  <line class="arr" x1="575" y1="58" x2="592" y2="58" marker-end="url(#arrow)"/>
+  <line class="arr" x1="709" y1="58" x2="726" y2="58" marker-end="url(#arrow)"/>
+</svg>
