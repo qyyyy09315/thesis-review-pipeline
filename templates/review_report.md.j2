@@ -28,6 +28,28 @@
 | {{ row.name }} | {{ row.score }}/5 | {{ row.note }} |
 {% endfor %}
 
+{% if code_audit.status %}
+**代码–论文对账（Agent C：数字 / 结构 / 超参 / 实验设计）**
+
+对账状态：`{{ code_audit.status }}`{% if code_audit.roots %}；代码根目录：{% for r in code_audit.roots %}`{{ r }}`{% if not loop.last %}、{% endif %}{% endfor %}{% endif %}
+
+{% if code_audit.note %}
+对账说明：{{ code_audit.note }}
+
+{% endif %}
+{% if code_audit.rows %}
+| 维度 | 主张 | 论文定位与摘引 | 代码位置 | 代码取值 | 判定 |
+| --- | --- | --- | --- | --- | --- |
+{% for row in code_audit.rows %}
+| {{ row.aspect }} | {{ row.claim }} | {{ row.paper }} | {{ row.code_ref }} | {{ row.code_value }} | {{ row.verdict }} |
+{% endfor %}
+
+{% endif %}
+{% if code_audit.skipped %}
+未核验维度（已说明理由）：{% for s in code_audit.skipped %}{{ s.label }}——{{ s.reason }}{% if not loop.last %}；{% endif %}{% endfor %}
+
+{% endif %}
+{% endif %}
 ### 二、 实质性修改意见（Major Comments - 关乎学术严谨性与论证逻辑）
 
 {% if majors %}

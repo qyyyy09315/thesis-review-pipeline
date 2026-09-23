@@ -42,6 +42,7 @@ def test_init_like_render_has_four_sections(tmp_path: Path):
     assert "补充至少一组消融" in text
     assert "五维评分卡" in text
     assert "问题–证据表" in text
+    assert "代码–论文对账" not in text
     html = (run_dir / "review_report.html").read_text(encoding="utf-8")
     assert "五维评分卡" in html
     assert (run_dir / "stage3" / "scorecard.json").exists()
@@ -109,3 +110,54 @@ def test_linter_triage_surface(tmp_path: Path):
     text = report.read_text(encoding="utf-8")
     assert "机械预检对账" in text
     assert "problem_formulation" in text
+
+
+def test_code_audit_table_surface(tmp_path: Path):
+    """code_correspondence 四维对账结果应进入报告（md + html）。"""
+    run_dir = _prepare_run(tmp_path)
+    c_path = run_dir / "agents" / "agent_c_experiments.json"
+    payload = json.loads(c_path.read_text(encoding="utf-8"))
+    payload.update(
+        {
+            "status": "done",
+            "quantitative_claims": True,
+            "code_status": "checked",
+            "code_roots": ["results/main"],
+            "code_note": "已打开结果文件核对。",
+            "aspects_skipped": {},
+            "code_correspondence": [
+                {
+                    "claim": "表5.1 主模型 macro-F1",
+                    "aspect": "number",
+                    "paper_ref": "5.3 表5.1",
+                    "paper_quote": "macro-F1 0.812",
+                    "paper_value": "0.812",
+                    "code_ref": "results/main/foldmean.csv",
+                    "code_value": "0.812",
+                    "verdict": "match",
+                },
+                {
+                    "claim": "骨干为 ResNet-50",
+                    "aspect": "architecture",
+                    "paper_ref": "4.1",
+                    "paper_quote": "采用 ResNet-50 作为骨干网络",
+                    "paper_value": "ResNet-50",
+                    "code_ref": "src/models/backbone.py",
+                    "code_value": "vit_base_patch16",
+                    "verdict": "mismatch",
+                },
+            ],
+        }
+    )
+    c_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    report = render_report(run_dir)
+    text = report.read_text(encoding="utf-8")
+    assert "代码–论文对账" in text
+    assert "表5.1 主模型 macro-F1" in text
+    assert "foldmean.csv" in text
+    assert "采用 ResNet-50 作为骨干网络" in text
+    assert "不一致" in text
+    assert "已打开结果文件核对。" in text
+    html = (run_dir / "review_report.html").read_text(encoding="utf-8")
+    assert "代码–论文对账" in html
+    assert "foldmean.csv" in html

@@ -103,6 +103,7 @@ def _empty_agent_payload(name: str) -> dict:
         payload["code_status"] = "pending"
         payload["code_roots"] = []
         payload["code_note"] = ""
+        payload["aspects_skipped"] = {}
         payload["code_correspondence"] = []
     return payload
 

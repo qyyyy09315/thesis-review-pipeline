@@ -31,6 +31,64 @@ def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+CODE_ASPECT_LABELS = {
+    "number": "数字",
+    "architecture": "结构",
+    "hyperparameter": "超参",
+    "design": "设计",
+}
+CODE_VERDICT_LABELS = {
+    "match": "一致",
+    "mismatch": "不一致",
+    "unverifiable": "无法核对",
+}
+
+
+def _code_audit_context(agent_c: dict) -> dict:
+    """Turn code_correspondence rows into display rows with Chinese labels."""
+    rows = []
+    for row in agent_c.get("code_correspondence") or []:
+        if not isinstance(row, dict):
+            continue
+        aspect = str(row.get("aspect") or "").strip().lower()
+        verdict = str(row.get("verdict") or "").strip().lower()
+        paper_ref = str(row.get("paper_ref") or "").strip()
+        paper_quote = str(row.get("paper_quote") or "").strip()
+        rows.append(
+            {
+                "aspect": CODE_ASPECT_LABELS.get(aspect, aspect or "—"),
+                "claim": str(row.get("claim") or ""),
+                "paper": paper_ref + (f"「{paper_quote}」" if paper_quote else ""),
+                "code_ref": str(row.get("code_ref") or ""),
+                "code_value": str(row.get("code_value") or ""),
+                "verdict": CODE_VERDICT_LABELS.get(verdict, verdict or "—"),
+            }
+        )
+    skipped = []
+    raw_skipped = agent_c.get("aspects_skipped")
+    if isinstance(raw_skipped, dict):
+        for key, reason in raw_skipped.items():
+            key_norm = str(key).strip().lower()
+            skipped.append(
+                {
+                    "label": CODE_ASPECT_LABELS.get(key_norm, key_norm or "—"),
+                    "reason": str(reason or ""),
+                }
+            )
+    return {
+        # "pending" 是未开始对账的骨架状态，不进报告。
+        "status": (
+            str(agent_c.get("code_status") or "").strip().lower()
+            if str(agent_c.get("code_status") or "").strip().lower() != "pending"
+            else ""
+        ),
+        "roots": [str(r) for r in agent_c.get("code_roots") or []],
+        "note": str(agent_c.get("code_note") or ""),
+        "rows": rows,
+        "skipped": skipped,
+    }
+
+
 def collect_context(run_dir: Path) -> dict:
     meta = _load_json(run_dir / "metadata.json")
     lint = _load_json(run_dir / "stage1" / "linter.json")
@@ -84,6 +142,7 @@ def collect_context(run_dir: Path) -> dict:
         "roadmap": roadmap,
         "scorecard": scorecard,
         "evidence_map": evidence_map,
+        "code_audit": _code_audit_context(c),
         "linter_triage": cons.get("linter_triage") or [],
         "open_ledger": open_issues(),
         "lint": lint,

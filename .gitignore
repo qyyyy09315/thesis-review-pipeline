@@ -29,3 +29,6 @@ runs/*
 scripts/_scan_pii.py
 scripts/_scrub_paths.py
 .workbuddy/
+
+# Archived previous review rounds; keep real materials out of git.
+archive/

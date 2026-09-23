@@ -38,6 +38,11 @@ def test_init_run_cli(tmp_path: Path, monkeypatch, capsys):
     meta = json.loads((run_dirs[0] / "metadata.json").read_text(encoding="utf-8"))
     assert meta["grade"] == "待深审"
     assert meta["grade_suggested"] in {"退修", "及格", "良好"}
+    agent_c = json.loads(
+        (run_dirs[0] / "agents" / "agent_c_experiments.json").read_text(encoding="utf-8")
+    )
+    assert agent_c["code_status"] == "pending"
+    assert agent_c["aspects_skipped"] == {}
 
 
 def test_ingest_cli_versioned_flag(tmp_path: Path, monkeypatch, capsys):
@@ -180,9 +185,17 @@ def test_doctor_accepts_matched_code_correspondence(tmp_path: Path, monkeypatch,
             "status": "done",
             "quantitative_claims": True,
             "code_status": "checked",
+            "aspects_skipped": {
+                "architecture": "未提供模型定义文件",
+                "hyperparameter": "未提供训练配置",
+                "design": "未提供数据划分脚本",
+            },
             "code_correspondence": [
                 {
                     "claim": "表5.1 macro-F1",
+                    "aspect": "number",
+                    "paper_ref": "5.3 表5.1",
+                    "paper_quote": "macro-F1 0.812±0.01",
                     "paper_value": "0.812",
                     "code_ref": "results/main/foldmean.csv",
                     "code_value": "0.812",
@@ -202,9 +215,17 @@ def test_doctor_flags_mismatch_without_major(tmp_path: Path, monkeypatch, capsys
         {
             "status": "done",
             "code_status": "checked",
+            "aspects_skipped": {
+                "architecture": "未提供模型定义文件",
+                "hyperparameter": "未提供训练配置",
+                "design": "未提供数据划分脚本",
+            },
             "code_correspondence": [
                 {
                     "claim": "表5.1 macro-F1",
+                    "aspect": "number",
+                    "paper_ref": "5.3 表5.1",
+                    "paper_quote": "macro-F1 0.812±0.01",
                     "paper_value": "0.812",
                     "code_ref": "results/main/foldmean.csv",
                     "code_value": "0.790",
@@ -216,3 +237,232 @@ def test_doctor_flags_mismatch_without_major(tmp_path: Path, monkeypatch, capsys
     rc = main(["doctor"])
     assert rc == 1
     assert "mismatch" in capsys.readouterr().out
+
+
+_FULL_SKIP = {
+    "number": "无定量结果",
+    "architecture": "无结构描述",
+    "hyperparameter": "无训练配置",
+    "design": "无实验设计",
+}
+
+
+def test_doctor_flags_row_missing_aspect_and_paper_ref(tmp_path: Path, monkeypatch, capsys):
+    _done_run(
+        tmp_path,
+        monkeypatch,
+        {
+            "status": "done",
+            "code_status": "checked",
+            "aspects_skipped": dict(_FULL_SKIP),
+            "code_correspondence": [
+                {
+                    "claim": "表5.1 macro-F1",
+                    "paper_value": "0.812",
+                    "code_ref": "results/main/foldmean.csv",
+                    "code_value": "0.812",
+                    "verdict": "match",
+                }
+            ],
+        },
+    )
+    rc = main(["doctor"])
+    assert rc == 1
+    out = capsys.readouterr().out
+    assert "缺 aspect" in out
+    assert "缺 paper_ref" in out
+
+
+def test_doctor_flags_illegal_aspect(tmp_path: Path, monkeypatch, capsys):
+    _done_run(
+        tmp_path,
+        monkeypatch,
+        {
+            "status": "done",
+            "code_status": "checked",
+            "aspects_skipped": dict(_FULL_SKIP),
+            "code_correspondence": [
+                {
+                    "claim": "表5.1 macro-F1",
+                    "aspect": "loss",
+                    "paper_ref": "5.3 表5.1",
+                    "paper_value": "0.812",
+                    "code_ref": "results/main/foldmean.csv",
+                    "code_value": "0.812",
+                    "verdict": "match",
+                }
+            ],
+        },
+    )
+    rc = main(["doctor"])
+    assert rc == 1
+    assert "aspect 非法" in capsys.readouterr().out
+
+
+def test_doctor_flags_uncovered_aspects(tmp_path: Path, monkeypatch, capsys):
+    _done_run(
+        tmp_path,
+        monkeypatch,
+        {
+            "status": "done",
+            "code_status": "checked",
+            "code_correspondence": [
+                {
+                    "claim": "表5.1 macro-F1",
+                    "aspect": "number",
+                    "paper_ref": "5.3 表5.1",
+                    "paper_value": "0.812",
+                    "code_ref": "results/main/foldmean.csv",
+                    "code_value": "0.812",
+                    "verdict": "match",
+                }
+            ],
+        },
+    )
+    rc = main(["doctor"])
+    assert rc == 1
+    out = capsys.readouterr().out
+    assert "未对账维度 architecture" in out
+    assert "未对账维度 hyperparameter" in out
+    assert "未对账维度 design" in out
+
+
+def test_doctor_flags_skipped_without_reason(tmp_path: Path, monkeypatch, capsys):
+    _done_run(
+        tmp_path,
+        monkeypatch,
+        {
+            "status": "done",
+            "code_status": "checked",
+            "aspects_skipped": {
+                "architecture": "",
+                "hyperparameter": "无训练配置",
+                "design": "无实验设计",
+            },
+            "code_correspondence": [
+                {
+                    "claim": "表5.1 macro-F1",
+                    "aspect": "number",
+                    "paper_ref": "5.3 表5.1",
+                    "paper_value": "0.812",
+                    "code_ref": "results/main/foldmean.csv",
+                    "code_value": "0.812",
+                    "verdict": "match",
+                }
+            ],
+        },
+    )
+    rc = main(["doctor"])
+    assert rc == 1
+    out = capsys.readouterr().out
+    assert "aspects_skipped[architecture] 未写跳过理由" in out
+    assert "未对账维度 architecture" in out
+
+
+def test_doctor_accepts_aspects_skipped_reasons(tmp_path: Path, monkeypatch, capsys):
+    _done_run(
+        tmp_path,
+        monkeypatch,
+        {
+            "status": "done",
+            "code_status": "checked",
+            "aspects_skipped": {
+                "architecture": "未提供模型定义文件",
+                "hyperparameter": "未提供训练配置",
+                "design": "未提供数据划分脚本",
+            },
+            "code_correspondence": [
+                {
+                    "claim": "表5.1 macro-F1",
+                    "aspect": "number",
+                    "paper_ref": "5.3 表5.1",
+                    "paper_value": "0.812",
+                    "code_ref": "results/main/foldmean.csv",
+                    "code_value": "0.812",
+                    "verdict": "match",
+                }
+            ],
+        },
+    )
+    rc = main(["doctor"])
+    assert rc == 0
+    assert "一切正常" in capsys.readouterr().out
+
+
+def test_doctor_quantitative_false_skips_number_aspect(tmp_path: Path, monkeypatch, capsys):
+    _done_run(
+        tmp_path,
+        monkeypatch,
+        {
+            "status": "done",
+            "quantitative_claims": False,
+            "code_status": "checked",
+            "aspects_skipped": {
+                "hyperparameter": "理论稿无训练配置",
+                "design": "理论稿无实验设计",
+            },
+            "code_correspondence": [
+                {
+                    "claim": "算法1 堆叠层数 L=3",
+                    "aspect": "architecture",
+                    "paper_ref": "4.1 算法1",
+                    "paper_quote": "堆叠 L=3 层",
+                    "paper_value": "L=3",
+                    "code_ref": "src/algo/stack.py",
+                    "code_value": "num_layers=3",
+                    "verdict": "match",
+                }
+            ],
+        },
+    )
+    rc = main(["doctor"])
+    assert rc == 0
+    assert "一切正常" in capsys.readouterr().out
+
+
+def test_doctor_flags_mismatch_without_quote(tmp_path: Path, monkeypatch, capsys):
+    _done_run(
+        tmp_path,
+        monkeypatch,
+        {
+            "status": "done",
+            "code_status": "checked",
+            "aspects_skipped": {
+                "architecture": "未提供模型定义文件",
+                "hyperparameter": "未提供训练配置",
+                "design": "未提供数据划分脚本",
+            },
+            "code_correspondence": [
+                {
+                    "claim": "训练学习率 1e-3",
+                    "aspect": "hyperparameter",
+                    "paper_ref": "5.2 表5.3",
+                    "paper_value": "lr=1e-3",
+                    "code_ref": "configs/main.yaml",
+                    "code_value": "lr=3e-4",
+                    "verdict": "mismatch",
+                }
+            ],
+            "findings": [
+                {
+                    "severity": "major",
+                    "location": "5.2 表5.3",
+                    "problem": "论文学习率与代码配置不一致。",
+                }
+            ],
+        },
+    )
+    cons_path = tmp_path / "runs" / "20260101-000000-x" / "agents" / "consolidator.json"
+    cons = json.loads(cons_path.read_text(encoding="utf-8"))
+    cons["majors"] = [
+        {
+            "location": "5.2 表5.3",
+            "problem": "论文所述超参与代码配置不一致。",
+            "basis": "可复现性",
+            "action": "统一论文与配置。",
+        }
+    ]
+    cons_path.write_text(json.dumps(cons, ensure_ascii=False), encoding="utf-8")
+    rc = main(["doctor"])
+    assert rc == 1
+    assert "paper_quote" in capsys.readouterr().out

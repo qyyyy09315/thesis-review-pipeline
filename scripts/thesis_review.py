@@ -183,13 +183,20 @@ def cmd_ledger(args: argparse.Namespace) -> int:
 
 _CODE_STATUS_DONE = {"missing", "partial", "checked"}
 _CODE_VERDICTS = {"match", "mismatch", "unverifiable"}
-_CODE_ABSENCE_MARKERS = ("代码", "日志", "配置", "对账", "结果文件", "脚本", "csv", "CSV")
+# 四维对账：实验数字 / 模型结构 / 超参数 / 实验设计。
+_CODE_ASPECTS = ("number", "architecture", "hyperparameter", "design")
+_CODE_ABSENCE_MARKERS = (
+    "代码", "日志", "配置", "对账", "结果文件", "脚本", "csv", "CSV",
+    "实现", "模型", "超参", "参数", "数据集", "划分",
+)
 
 
 def code_audit_problems(run_dir: Path) -> list[str]:
-    """Flag a finished deep review that never tied reported numbers to code.
+    """Flag a finished deep review that never tied its claims to code.
 
-    Runs written before this field existed have no `code_status` and are skipped.
+    Covers the four correspondence aspects: numbers, model architecture,
+    hyperparameters and experiment design. Runs written before this field
+    existed have no `code_status` and are skipped.
     """
     cons_path = run_dir / "agents" / "consolidator.json"
     agent_path = run_dir / "agents" / "agent_c_experiments.json"
@@ -227,13 +234,22 @@ def code_audit_problems(run_dir: Path) -> list[str]:
         return problems
     saw_unverifiable = False
     saw_mismatch = False
+    covered_aspects: set[str] = set()
     for index, row in enumerate(rows, start=1):
         if not isinstance(row, dict):
             problems.append(f"[code] {run_id} 对账第 {index} 行不是对象")
             continue
-        for key in ("claim", "paper_value", "code_ref", "verdict"):
+        for key in ("claim", "aspect", "paper_ref", "paper_value", "code_ref", "verdict"):
             if not str(row.get(key) or "").strip():
                 problems.append(f"[code] {run_id} 对账第 {index} 行缺 {key}")
+        aspect = str(row.get("aspect") or "").strip().lower()
+        if aspect in _CODE_ASPECTS:
+            covered_aspects.add(aspect)
+        elif aspect:
+            problems.append(
+                f"[code] {run_id} 对账第 {index} 行 aspect 非法: {row.get('aspect')!r}"
+                "（须为 number / architecture / hyperparameter / design）"
+            )
         verdict = str(row.get("verdict") or "").strip().lower()
         if verdict and verdict not in _CODE_VERDICTS:
             problems.append(f"[code] {run_id} 对账第 {index} 行 verdict 非法: {row.get('verdict')!r}")
@@ -241,12 +257,47 @@ def code_audit_problems(run_dir: Path) -> list[str]:
             saw_mismatch = True
             if "code_value" not in row or not str(row.get("code_value") or "").strip():
                 problems.append(f"[code] {run_id} 对账第 {index} 行 mismatch 未给出 code_value")
+            if not str(row.get("paper_quote") or "").strip():
+                problems.append(
+                    f"[code] {run_id} 对账第 {index} 行 mismatch 未给出 paper_quote"
+                    "（原文摘引，供 Major 锚定）"
+                )
         if verdict == "unverifiable":
             saw_unverifiable = True
+    problems.extend(_aspect_coverage_problems(run_id, agent_c, covered_aspects))
     if status == "checked" and saw_unverifiable:
         problems.append(f"[code] {run_id} code_status=checked 仍有 unverifiable 行，应改为 partial")
     if saw_mismatch and not _mentions_code_gap(cons, agent_c):
         problems.append(f"[code] {run_id} 存在 mismatch，但 Major 未记录论文数字与代码不一致")
+    return problems
+
+
+def _aspect_coverage_problems(run_id: str, agent_c: dict, covered: set[str]) -> list[str]:
+    """Each aspect needs a row or a written skip reason; theory papers drop `number`."""
+    required = set(_CODE_ASPECTS)
+    if not agent_c.get("quantitative_claims", True):
+        required.discard("number")
+    skipped_raw = agent_c.get("aspects_skipped")
+    if skipped_raw is None:
+        skipped_raw = {}
+    if not isinstance(skipped_raw, dict):
+        return [f"[code] {run_id} aspects_skipped 不是对象（aspect → 跳过理由）"]
+    problems: list[str] = []
+    skipped: set[str] = set()
+    for key, reason in skipped_raw.items():
+        key_norm = str(key).strip().lower()
+        if key_norm not in _CODE_ASPECTS:
+            problems.append(f"[code] {run_id} aspects_skipped 含未知维度 {key!r}")
+            continue
+        if not str(reason or "").strip():
+            problems.append(f"[code] {run_id} aspects_skipped[{key_norm}] 未写跳过理由")
+            continue
+        skipped.add(key_norm)
+    for aspect in sorted(required - covered - skipped):
+        problems.append(
+            f"[code] {run_id} 未对账维度 {aspect}"
+            "（数字/结构/超参/设计须各有对账行，或在 aspects_skipped 写明理由）"
+        )
     return problems
 
 
@@ -350,7 +401,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_doc = sub.add_parser(
         "doctor",
-        help="体检：run 日志对账、绝对路径泄漏、consolidator 状态、实验数字与代码对账",
+        help="体检：run 日志对账、绝对路径泄漏、consolidator 状态、代码–论文对账（数字/结构/超参/设计）",
     )
     p_doc.set_defaults(func=cmd_doctor)
 

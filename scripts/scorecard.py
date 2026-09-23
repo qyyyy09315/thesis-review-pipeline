@@ -193,6 +193,42 @@ def render_html(ctx: dict) -> str:
             f"<tbody>{ledger_rows}</tbody></table>"
         )
 
+    ca = ctx.get("code_audit") or {}
+    code_section = ""
+    if ca.get("status"):
+        code_rows = "".join(
+            f"<tr><td>{html_escape(r['aspect'])}</td>"
+            f"<td>{html_escape(r['claim'])}</td>"
+            f"<td>{html_escape(r['paper'])}</td>"
+            f"<td>{html_escape(r['code_ref'])}</td>"
+            f"<td>{html_escape(r['code_value'])}</td>"
+            f"<td>{html_escape(r['verdict'])}</td></tr>"
+            for r in ca.get("rows") or []
+        )
+        head = f"对账状态：<code>{html_escape(ca.get('status', ''))}</code>"
+        roots = "、".join(html_escape(x) for x in ca.get("roots") or [])
+        if roots:
+            head += f"；代码根目录：{roots}"
+        note_html = f"<p>对账说明：{html_escape(ca.get('note', ''))}</p>" if ca.get("note") else ""
+        table = ""
+        if code_rows:
+            table = (
+                "<table><thead><tr><th>维度</th><th>主张</th><th>论文定位与摘引</th>"
+                "<th>代码位置</th><th>代码取值</th><th>判定</th></tr></thead>"
+                f"<tbody>{code_rows}</tbody></table>"
+            )
+        skipped_html = ""
+        skipped = ca.get("skipped") or []
+        if skipped:
+            items = "".join(
+                f"<li>{html_escape(s['label'])}——{html_escape(s['reason'])}</li>" for s in skipped
+            )
+            skipped_html = f"<p>未核验维度（已说明理由）：</p><ul>{items}</ul>"
+        code_section = (
+            "<h4>代码–论文对账（Agent C：数字 / 结构 / 超参 / 实验设计）</h4>"
+            f"<p>{head}</p>{note_html}{table}{skipped_html}"
+        )
+
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -216,6 +252,7 @@ th {{ background: #f4f4f4; text-align: left; }}
 <h4>五维评分卡</h4>
 <table><thead><tr><th>维度</th><th>分数</th><th>依据</th></tr></thead>
 <tbody>{score_rows}</tbody></table>
+{code_section}
 <h3>二、 实质性修改意见（Major Comments - 关乎学术严谨性与论证逻辑）</h3>
 <ol>{"".join(major_blocks)}</ol>
 <h3>三、 规范性与细节性修改意见（Minor Comments - 关乎格式、符号与表达）</h3>
