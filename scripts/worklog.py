@@ -7,7 +7,10 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-GLOBAL_LOG = ROOT / "docs" / "worklog.md"
+PUBLIC_LOG = ROOT / "docs" / "worklog.md"
+CASE_LOG = ROOT / "docs" / "worklog.local.md"
+# Automatic entries go to the gitignored case log. Tests monkeypatch GLOBAL_LOG.
+GLOBAL_LOG = CASE_LOG
 
 ABS_PATH_RE = re.compile(r"[A-Za-z]:[/\\][^\s，。；、）】」'\"`)`|]*")
 
@@ -49,7 +52,7 @@ def append_worklog(message: str, run_dir: Path | None = None, extra: str = "") -
     block += "\n"
     GLOBAL_LOG.parent.mkdir(parents=True, exist_ok=True)
     if not GLOBAL_LOG.exists():
-        GLOBAL_LOG.write_text("# 审稿工作日志\n\n", encoding="utf-8")
+        GLOBAL_LOG.write_text("# 本地审稿日志\n\n此文件不提交。\n\n", encoding="utf-8")
     with GLOBAL_LOG.open("a", encoding="utf-8") as handle:
         handle.write(block)
     if run_dir is not None:

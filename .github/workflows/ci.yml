@@ -14,7 +14,19 @@ jobs:
           python-version: "3.12"
       - name: Install locked dependencies
         run: pip install -r requirements.txt
-      - name: Run test suite
-        run: python -m pytest tests -q
-      - name: Doctor (log/privacy consistency on tracked sample)
-        run: python scripts/thesis_review.py doctor
+      - name: Stable check
+        run: python scripts/thesis_review.py check
+
+  pr-format:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check PR title, sections, and mentions
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: python scripts/pr_check.py

@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "project": {
+    "paper_version": "",
+    "code_version": "",
+    "data_version": "",
+    "model_version": "",
+    "old_experiment": "",
+    "new_experiment": "",
+    "deliverable_now": "",
+    "unverified": "",
+    "next_action": "",
+    "decision": "",
+    "data_split_evidence": "",
+    "algorithm_evidence": "",
+    "metric_evidence": "",
+    "user_journey_evidence": ""
+  },
+  "items": []
+}

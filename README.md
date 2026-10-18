@@ -52,6 +52,10 @@ python scripts/thesis_review.py render runs/<id>
 | `ledger add/close/list` | 跨轮问题台账，报告自动附「跨轮遗留」 |
 | `sanitize` | 清洗日志中的本机绝对路径；**提交前必跑** |
 | `doctor` | 体检：日志对账、路径泄漏、consolidator 状态、代码–论文对账 |
+| `check` | 稳定入口：先跑测试，再跑 doctor |
+| `item` / `overview` | 交付条目和一页总览；建议必须 @ 到人 |
+| `scope` | 按改动路径选择检查 |
+| `pr-check` | 检查 PR 标题、章节、@ 和隐私声明 |
 | `audit <file>` | 可选封装 `paper-audit`（仅 `.tex` / `.typ` / `.pdf`，未安装则退出码 2） |
 
 </details>

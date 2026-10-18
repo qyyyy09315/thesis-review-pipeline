@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
+import delivery
 import ledger
+import pr_check
+import scope as review_scope
 import worklog
 from ingest import ingest_file, slugify
 from linter import lint_file, render_markdown
@@ -126,7 +130,16 @@ def cmd_audit(args: argparse.Namespace) -> int:
 
 
 def cmd_sanitize(args: argparse.Namespace) -> int:
-    targets = [worklog.GLOBAL_LOG] + [Path(p) for p in args.extra]
+    targets = [worklog.PUBLIC_LOG, worklog.GLOBAL_LOG] + [Path(p) for p in args.extra]
+    seen: set[Path] = set()
+    unique: list[Path] = []
+    for path in targets:
+        resolved = path.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        unique.append(path)
+    targets = unique
     total = 0
     for path in targets:
         if not path.exists():
@@ -319,11 +332,15 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     del args  # doctor takes no options today; kept for parser symmetry.
     problems: list[str] = []
     runs_root = ROOT / "runs"
-    log_text = (
-        worklog.GLOBAL_LOG.read_text(encoding="utf-8")
-        if worklog.GLOBAL_LOG.exists()
-        else ""
-    )
+    chunks: list[str] = []
+    seen_logs: set[Path] = set()
+    for path in (worklog.PUBLIC_LOG, worklog.GLOBAL_LOG, ROOT / "docs" / "worklog.local.md"):
+        resolved = path.resolve()
+        if resolved in seen_logs or not path.exists():
+            continue
+        seen_logs.add(resolved)
+        chunks.append(path.read_text(encoding="utf-8"))
+    log_text = "\n".join(chunks)
     for meta_path in sorted(runs_root.glob("*/metadata.json")):
         run_id = meta_path.parent.name
         if run_id not in log_text:
@@ -335,7 +352,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
                 problems.append(f"[privacy] {run_id} metadata.{key} 含绝对路径: {value}")
     if log_text:
         for leak in worklog.ABS_PATH_RE.finditer(log_text):
-            problems.append(f"[privacy] docs/worklog.md 含绝对路径: {leak.group(0)}")
+            problems.append(f"[privacy] 工作日志含绝对路径: {leak.group(0)}")
     for cons_path in sorted(runs_root.glob("*/agents/consolidator.json")):
         cons = json.loads(cons_path.read_text(encoding="utf-8"))
         status = str(cons.get("status", "")).lower()
@@ -349,6 +366,124 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         return 1
     print("doctor：一切正常。")
     return 0
+
+
+def _delivery_path(args: argparse.Namespace) -> Path | None:
+    raw = getattr(args, "delivery", "") or ""
+    return Path(raw) if raw else None
+
+
+def cmd_item(args: argparse.Namespace) -> int:
+    path = _delivery_path(args)
+    try:
+        if args.action == "add":
+            item = delivery.add_item(
+                item_type=args.type,
+                problem=args.problem,
+                mentions=list(args.mention or []),
+                location=args.location,
+                severity=args.severity,
+                track=args.track,
+                status=args.status or "candidate",
+                acceptance=args.acceptance,
+                novelty=args.novelty,
+                path=path,
+            )
+            worklog.append_worklog(
+                f"item add {item['id']} {item['type']}/{item['status']} {' '.join(item['mentions'])}"
+            )
+            print(f"{item['id']} {item['type']} {item['status']} {' '.join(item['mentions'])}")
+            return 0
+        if args.action == "set":
+            if not args.id or not args.status:
+                print("set 需要 --id 和 --status", file=sys.stderr)
+                return 1
+            item = delivery.set_status(args.id, args.status, note=args.note, path=path)
+            if item is None:
+                print(f"未找到 {args.id}", file=sys.stderr)
+                return 1
+            worklog.append_worklog(f"item set {item['id']} → {item['status']}")
+            print(f"{item['id']} {item['status']}")
+            return 0
+        if args.action == "list":
+            for item in delivery.load_delivery(path).get("items") or []:
+                mentions = " ".join(item.get("mentions") or [])
+                print(f"{item['id']} {item['track']} {item['type']} {item['status']} {mentions}")
+            return 0
+        if args.action == "import-v1":
+            payload = json.loads(Path(args.src).read_text(encoding="utf-8"))
+            added = delivery.import_v1(
+                payload,
+                mention=" ".join(args.mention or []),
+                track=args.track,
+                path=path,
+            )
+            worklog.append_worklog(f"item import-v1 {len(added)} 条 → {args.track}")
+            print(f"imported {len(added)}")
+            return 0
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(f"未知动作：{args.action}", file=sys.stderr)
+    return 1
+
+
+def cmd_project(args: argparse.Namespace) -> int:
+    path = _delivery_path(args)
+    if args.action == "show":
+        print(json.dumps(delivery.load_delivery(path)["project"], ensure_ascii=False, indent=2))
+        return 0
+    updates = {
+        key: getattr(args, key)
+        for key in delivery.PROJECT_FIELDS
+        if getattr(args, key) is not None
+    }
+    delivery.set_project(updates, path=path)
+    worklog.append_worklog("project set " + ", ".join(sorted(updates)))
+    print("project updated")
+    return 0
+
+
+def cmd_overview(args: argparse.Namespace) -> int:
+    text = delivery.render_overview(delivery.load_delivery(_delivery_path(args)))
+    if args.out:
+        dest = Path(args.out)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(text, encoding="utf-8")
+        print(dest)
+    else:
+        print(text, end="")
+    return 0
+
+
+def cmd_scope(args: argparse.Namespace) -> int:
+    loaded = review_scope.load_scope(Path(args.scope) if args.scope else None)
+    plan = review_scope.select_checks(list(args.changed or []), loaded)
+    print(review_scope.render_plan(plan), end="")
+    return 0
+
+
+def cmd_pr_check(args: argparse.Namespace) -> int:
+    title = args.title or os.environ.get("PR_TITLE", "")
+    body = args.body or ""
+    if args.body_file:
+        body = Path(args.body_file).read_text(encoding="utf-8")
+    if not body:
+        body = os.environ.get("PR_BODY", "")
+    errors = pr_check.check_pull_request(title, body)
+    if errors:
+        print("\n".join(errors))
+        return 1
+    print("pr-check：通过")
+    return 0
+
+
+def cmd_check(args: argparse.Namespace) -> int:
+    del args
+    proc = subprocess.run([sys.executable, "-m", "pytest", "tests", "-q"], cwd=ROOT)
+    if proc.returncode != 0:
+        return proc.returncode
+    return cmd_doctor(argparse.Namespace())
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -412,6 +547,49 @@ def build_parser() -> argparse.ArgumentParser:
     p_aud.add_argument("--pdf-mode", default="enhanced")
     p_aud.add_argument("--out-dir", default="")
     p_aud.set_defaults(func=cmd_audit)
+
+    p_item = sub.add_parser("item", help="交付条目：类型和状态分开，建议必须 @ 人")
+    p_item.add_argument("action", choices=["add", "set", "list", "import-v1"])
+    p_item.add_argument("--type", default="defect", choices=list(delivery.TYPES))
+    p_item.add_argument("--status", default="")
+    p_item.add_argument("--severity", default="major", choices=list(delivery.SEVERITIES))
+    p_item.add_argument("--track", default="paper", choices=list(delivery.TRACKS))
+    p_item.add_argument("--location", default="")
+    p_item.add_argument("--problem", default="")
+    p_item.add_argument("--mention", action="append", default=[])
+    p_item.add_argument("--id", default="")
+    p_item.add_argument("--note", default="")
+    p_item.add_argument("--acceptance", default="")
+    p_item.add_argument("--novelty", default="new", choices=["new", "carry"])
+    p_item.add_argument("--src", default="", help="import-v1 的 v1 台账路径")
+    p_item.add_argument("--delivery", default="", help="交付台账路径，默认 docs/delivery.json")
+    p_item.set_defaults(func=cmd_item)
+
+    p_proj = sub.add_parser("project", help="填写总览用的版本和本轮决定")
+    p_proj.add_argument("action", choices=["set", "show"])
+    p_proj.add_argument("--delivery", default="")
+    for key in delivery.PROJECT_FIELDS:
+        p_proj.add_argument(f"--{key.replace('_', '-')}", default=None)
+    p_proj.set_defaults(func=cmd_project)
+
+    p_ov = sub.add_parser("overview", help="渲染一页项目总览")
+    p_ov.add_argument("--delivery", default="")
+    p_ov.add_argument("--out", default="")
+    p_ov.set_defaults(func=cmd_overview)
+
+    p_scope = sub.add_parser("scope", help="按改动路径选择检查，未变依赖沿用证据")
+    p_scope.add_argument("--changed", action="append", default=[])
+    p_scope.add_argument("--scope", default="", help="自定义 docs/check_scope.json")
+    p_scope.set_defaults(func=cmd_scope)
+
+    p_pr = sub.add_parser("pr-check", help="检查 PR 标题、章节和 @ 提及")
+    p_pr.add_argument("--title", default="")
+    p_pr.add_argument("--body", default="")
+    p_pr.add_argument("--body-file", default="")
+    p_pr.set_defaults(func=cmd_pr_check)
+
+    p_check = sub.add_parser("check", help="稳定入口：pytest 然后 doctor")
+    p_check.set_defaults(func=cmd_check)
 
     return parser
 

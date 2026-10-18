@@ -46,3 +46,9 @@ runs/ 下 19 个历史 run、上一轮的 ledger.json 与 worklog.md）。跨轮
 工作流改文字描述并合成 SVG（docs/assets/workflow.svg），Agent 合同与
 约束改为规范索引，标题缀加中文名「毕设行止」。sanitize 干净、doctor
 通过后推送。未改论文源文件。
+
+## 2026-10-18 会话：具体审稿记录不入库
+
+某一篇的台账和逐轮记录留在本机，不进入 git。自动日志写入 docs/worklog.local.md。
+DOCX 归一时把「第X章 / x.x」行提升为 Markdown 标题。
+

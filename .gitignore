@@ -32,3 +32,12 @@ scripts/_scrub_paths.py
 
 # Archived previous review rounds; keep real materials out of git.
 archive/
+
+# Case review records stay on this machine.
+docs/worklog.local.md
+docs/ledger.json
+docs/algorithm_ledger.json
+docs/system_ledger.json
+
+# Local agent hook / session state
+.mimosa/

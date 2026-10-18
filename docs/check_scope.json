@@ -1,0 +1,49 @@
+{
+  "areas": [
+    {
+      "id": "ingest",
+      "globs": ["scripts/ingest.py", "tests/test_ingest.py"],
+      "checks": ["pytest tests/test_ingest.py"]
+    },
+    {
+      "id": "linter",
+      "globs": ["scripts/linter.py", "tests/test_linter.py"],
+      "checks": ["pytest tests/test_linter.py"]
+    },
+    {
+      "id": "ledger",
+      "globs": ["scripts/ledger.py", "tests/test_ledger.py"],
+      "checks": ["pytest tests/test_ledger.py"]
+    },
+    {
+      "id": "render",
+      "globs": [
+        "scripts/render.py",
+        "scripts/scorecard.py",
+        "templates/**",
+        "tests/test_render.py",
+        "tests/test_scorecard.py"
+      ],
+      "checks": ["pytest tests/test_render.py", "pytest tests/test_scorecard.py"]
+    },
+    {
+      "id": "delivery",
+      "globs": [
+        "scripts/delivery.py",
+        "scripts/mentions.py",
+        "scripts/pr_check.py",
+        "scripts/scope.py",
+        "tests/test_delivery.py",
+        "tests/test_pr_check.py",
+        "tests/test_scope.py"
+      ],
+      "checks": ["pytest tests/test_delivery.py tests/test_pr_check.py tests/test_scope.py"]
+    },
+    {
+      "id": "cli",
+      "globs": ["scripts/thesis_review.py", "tests/test_cli.py"],
+      "checks": ["pytest tests/test_cli.py"]
+    }
+  ],
+  "release_checks": ["python scripts/thesis_review.py check"]
+}

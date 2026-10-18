@@ -1,0 +1,9 @@
+# 评审请求落到维护者。开发者组写成 @org/team，例如 @acme/review-pipeline。
+# 仓库设置里打开 “Require review from Code Owners” 后，GitHub 会按这里自动请求。
+
+* @qyyyy09315
+/.github/ @qyyyy09315
+/scripts/delivery.py @qyyyy09315
+/scripts/mentions.py @qyyyy09315
+/scripts/pr_check.py @qyyyy09315
+/scripts/scope.py @qyyyy09315

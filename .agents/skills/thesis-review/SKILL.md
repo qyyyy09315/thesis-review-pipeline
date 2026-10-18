@@ -44,7 +44,7 @@ ingest → Stage1 linter → Agent A/B/C 分审 → consolidator → render 四�
    - 聚合 → `agents/consolidator.json`
 5. 深审结束把 `consolidator.status` 改为 `done`，并把 Stage 1 每条结构缺口写入 `linter_triage`（accept/reject + 依据）；`done` 后 `majors`/`minors` 空列表 = 确认无，render 不再机械兜底。
 6. 新问题 `ledger add`，已闭环 `ledger close`，再 `render`。核对报告含且仅含 spec 规定的四级标题。
-7. 向 `docs/worklog.md` 追加本轮结论（CLI 已自动写一条；深审结束后再补一条人工摘要）。提交 git 前跑 `sanitize` + `doctor`。
+7. 某一篇的结论写进 `docs/worklog.local.md`（CLI 已自动写一条，该文件不提交）。流水线改动才写 `docs/worklog.md`。提交 git 前跑 `sanitize` + `doctor`，并确认没有把台账和本地日志加进暂存区。
 
 ## 代码–论文对账（数字 / 结构 / 超参 / 实验设计）
 
@@ -96,3 +96,10 @@ Major 每条：定位 + 具体问题 + 理论/学术依据 + 建议改进措施�
 ```bash
 .venv/Scripts/python.exe scripts/thesis_review.py audit <file> --mode quick-audit --lang zh
 ```
+
+## 交付控制与隐私
+
+- 新条目用 `item add`。类型和状态分开，编号是 `R-01`，不随严重性改变。每条建议必须 `@` 一位开发者或一个开发者组。
+- 某一篇的台账在 `docs/ledger.json` 等本地文件，不提交。自动审稿日志在 `docs/worklog.local.md`。
+- PR 不上传个人稿件或具体审稿记录。正文要有「不含个人稿件」，或「已脱敏」，或「已获授权」。
+- 发布前跑 `check`。只改了一处时用 `scope --changed <path>`。

@@ -59,8 +59,23 @@ def _from_docx(path: Path) -> str:
     except ImportError as exc:
         raise RuntimeError("DOCX 解析需要 mammoth 与 markdownify，请 pip install -r requirements.txt") from exc
     with path.open("rb") as handle:
-        html = mammoth.convert_to_html(handle).value
-    return to_md(html, heading_style="ATX")
+        html = mammoth.convert_to_html(
+            handle,
+            convert_image=mammoth.images.inline(lambda img: {"src": "image.png"}),
+        ).value
+    md = to_md(html, heading_style="ATX")
+    lines: list[str] = []
+    for line in md.splitlines():
+        stripped = line.strip()
+        if re.match(r"^第[一二三四五六七八九十]+章\s+[^\t\d]+$", stripped):
+            lines.append("# " + stripped)
+        elif re.match(r"^\d+\.\d+\s+[^\t\d]+$", stripped) and not stripped.startswith(("图", "表")):
+            lines.append("## " + stripped)
+        elif re.match(r"^\d+\.\d+\.\d+\s+[^\t\d]+$", stripped) and not stripped.startswith(("图", "表")):
+            lines.append("### " + stripped)
+        else:
+            lines.append(line)
+    return "\n".join(lines)
 
 
 def _from_pdf(path: Path) -> str:
