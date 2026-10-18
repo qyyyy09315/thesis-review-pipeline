@@ -91,6 +91,18 @@ python scripts/thesis_review.py render runs/<id>
 
 ---
 
+## 致谢
+
+<div align="center">
+
+献给 Yi-xuan YIN
+
+感谢她同我的教导和交流，她的实干和实践精神深刻地影响和激励了我。
+
+</div>
+
+---
+
 <div align="center">
 
 <sub>公开仓库只跟踪虚构样例 <a href="papers/sample_thesis.md">sample_thesis.md</a> 与对应样例 run；真实毕业设计材料一律不入库 · <a href="LICENSE">MIT</a></sub>
