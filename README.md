@@ -99,6 +99,8 @@ python scripts/thesis_review.py render runs/<id>
 
 感谢她同我的教导和交流，她的实干和实践精神深刻地影响和激励了我。
 
+题记的“纸上得来终觉浅”就是对她优秀品格的真实写照。
+
 </div>
 
 ---
