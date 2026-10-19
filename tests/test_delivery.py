@@ -108,7 +108,8 @@ def test_import_v1_closed_is_not_a_fix(tmp_path):
         track="paper",
         path=path,
     )
-    assert added[0]["id"] == "M-01"
+    assert added[0]["id"] == "paper:M-01"
+    assert added[0]["legacy_id"] == "M-01"
     assert added[0]["status"] == "superseded"
     assert "不得当成已经修复" in added[0]["note"]
     again = delivery.import_v1(
@@ -118,3 +119,37 @@ def test_import_v1_closed_is_not_a_fix(tmp_path):
         path=path,
     )
     assert again == []
+
+
+def test_import_v1_keeps_same_id_from_another_track(tmp_path):
+    path = tmp_path / "delivery.json"
+    paper_issue = {"id": "M-01", "severity": "major", "status": "open", "problem": "论文问题"}
+    algo_issue = {"id": "M-01", "severity": "major", "status": "open", "problem": "算法问题"}
+    paper = delivery.import_v1(
+        {"issues": [paper_issue]}, mention="@qyyyy09315", track="paper", path=path
+    )
+    algo = delivery.import_v1(
+        {"issues": [algo_issue]}, mention="@qyyyy09315", track="algorithm", path=path
+    )
+    assert len(paper) == 1
+    assert len(algo) == 1
+    assert paper[0]["id"] == "paper:M-01"
+    assert algo[0]["id"] == "algorithm:M-01"
+    assert paper[0]["legacy_id"] == algo[0]["legacy_id"] == "M-01"
+    assert paper[0]["problem"] != algo[0]["problem"]
+    again = delivery.import_v1(
+        {"issues": [paper_issue]}, mention="@qyyyy09315", track="paper", path=path
+    )
+    assert again == []
+    stored = delivery.load_delivery(path)["items"]
+    assert [item["id"] for item in stored] == ["paper:M-01", "algorithm:M-01"]
+
+
+def test_default_delivery_file_is_local_and_example_is_empty():
+    assert delivery.DELIVERY_PATH.name == "delivery.local.json"
+    assert delivery.EXAMPLE_PATH.name == "delivery.example.json"
+    ignored = (delivery.ROOT / ".gitignore").read_text(encoding="utf-8")
+    assert "docs/delivery.local.json" in ignored
+    example = delivery.load_delivery(delivery.EXAMPLE_PATH)
+    assert example["version"] == 2
+    assert example["items"] == []

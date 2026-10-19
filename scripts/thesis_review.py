@@ -562,7 +562,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_item.add_argument("--acceptance", default="")
     p_item.add_argument("--novelty", default="new", choices=["new", "carry"])
     p_item.add_argument("--src", default="", help="import-v1 的 v1 台账路径")
-    p_item.add_argument("--delivery", default="", help="交付台账路径，默认 docs/delivery.json")
+    p_item.add_argument("--delivery", default="", help="交付台账路径，默认 docs/delivery.local.json")
     p_item.set_defaults(func=cmd_item)
 
     p_proj = sub.add_parser("project", help="填写总览用的版本和本轮决定")

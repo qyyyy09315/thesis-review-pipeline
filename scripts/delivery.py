@@ -1,7 +1,8 @@
 """Delivery ledger: issue type and handling status stay separate.
 
-New ids are R-01, R-02, ... Severity never chooses the id. Legacy M-/N- ids
-imported from v1 are kept as-is.
+New ids are R-01, R-02, ... Severity never chooses the id. Imported v1 ids
+stay in legacy_id; the stored id is track plus that old id, so paper M-01
+and algorithm M-01 do not collapse.
 """
 
 from __future__ import annotations
@@ -14,7 +15,8 @@ from pathlib import Path
 from mentions import require_mentions
 
 ROOT = Path(__file__).resolve().parents[1]
-DELIVERY_PATH = ROOT / "docs" / "delivery.json"
+DELIVERY_PATH = ROOT / "docs" / "delivery.local.json"
+EXAMPLE_PATH = ROOT / "docs" / "delivery.example.json"
 
 TYPES = ("defect", "claim", "evidence_gap", "accepted_limit", "improvement")
 STATUSES = (
@@ -213,6 +215,18 @@ def set_project(updates: dict, path: Path | None = None) -> dict:
     return project
 
 
+def _import_keys(items: list[dict]) -> set[tuple[str, str]]:
+    keys: set[tuple[str, str]] = set()
+    for item in items:
+        track = str(item.get("track") or "")
+        legacy = str(item.get("legacy_id") or "")
+        if not legacy and item.get("legacy"):
+            legacy = str(item.get("id") or "")
+        if track and legacy:
+            keys.add((track, legacy))
+    return keys
+
+
 def import_v1(
     v1: dict,
     *,
@@ -223,12 +237,12 @@ def import_v1(
     track = _check_choice(track, TRACKS, "台账")
     mentions = require_mentions(mention)
     data = load_delivery(path)
-    existing = {str(item.get("id")) for item in data["items"]}
+    existing = _import_keys(data["items"])
     added: list[dict] = []
     now = _stamp()
     for issue in v1.get("issues") or []:
         uid = str(issue.get("id") or "")
-        if not uid or uid in existing:
+        if not uid or (track, uid) in existing:
             continue
         severity = str(issue.get("severity") or "major").lower()
         if severity not in SEVERITIES:
@@ -242,7 +256,8 @@ def import_v1(
             note = "从 v1 closed 导入。v1 不区分修复实测和接受局限，不得当成已经修复。"
         item_type = "defect" if severity == "major" else "improvement"
         item = {
-            "id": uid,
+            "id": f"{track}:{uid}",
+            "legacy_id": uid,
             "type": item_type,
             "status": status,
             "severity": severity,
@@ -260,7 +275,7 @@ def import_v1(
         }
         data["items"].append(item)
         added.append(item)
-        existing.add(uid)
+        existing.add((track, uid))
     save_delivery(data, path)
     return added
 
@@ -283,8 +298,12 @@ def summarize(data: dict) -> dict:
 def _fmt_item(item: dict) -> str:
     mentions = " ".join(item.get("mentions") or []) or "（无提及）"
     novelty = "新发现" if item.get("novelty") == "new" else "沿用"
+    legacy = str(item.get("legacy_id") or "")
+    label = str(item.get("id") or "")
+    if legacy and legacy != label:
+        label = f"{label}（旧 {legacy}）"
     return (
-        f"- {item.get('id')} [{TRACK_LABELS.get(item.get('track'), item.get('track'))}] "
+        f"- {label} [{TRACK_LABELS.get(item.get('track'), item.get('track'))}] "
         f"{TYPE_LABELS.get(item.get('type'), item.get('type'))} / "
         f"{STATUS_LABELS.get(item.get('status'), item.get('status'))} / {novelty} "
         f"{mentions}：{item.get('problem')}"

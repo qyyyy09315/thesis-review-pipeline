@@ -16,7 +16,7 @@
 3. **不编造文献**：不得虚构 DOI、基线成绩或审稿人原话。
 4. **默认离线**：未获用户明确授权不得 `--online` / 文献外搜。
 5. **工作日志**：流水线改动记在 `docs/worklog.md`。某一篇的审稿过程由 CLI 写入 `docs/worklog.local.md`，该文件不提交。
-6. **隐私**：真实学生论文、学号、姓名、学校内部材料和具体审稿记录不得提交 git。`papers/`、后续 `runs/`、`docs/ledger.json`、`docs/algorithm_ledger.json`、`docs/system_ledger.json`、`docs/worklog.local.md` 已忽略（样例除外）。日志与 metadata 只写相对路径；**提交前必跑 `sanitize` 清洗绝对路径，再跑 `doctor` 确认对账干净**。PR 默认声明「不含个人稿件」；要带材料必须写明「已脱敏」或「已获授权」。
+6. **隐私**：真实学生论文、学号、姓名、学校内部材料和具体审稿记录不得提交 git。`papers/`、后续 `runs/`、`docs/ledger.json`、`docs/algorithm_ledger.json`、`docs/system_ledger.json`、`docs/worklog.local.md`、`docs/delivery.local.json` 已忽略（样例除外）。公开交付样例是 `docs/delivery.example.json`，默认写入不进 git。日志与 metadata 只写相对路径；**提交前必跑 `sanitize` 清洗绝对路径，再跑 `doctor` 确认对账干净**。PR 默认声明「不含个人稿件」；要带材料必须写明「已脱敏」或「已获授权」。
 7. **深审闭环**：深审完成后把 `consolidator.json` 的 `status` 改为 `done`；预检结构缺口逐项写入 `linter_triage`（accept/reject + 依据），误报不得以 Major 形式进入报告。
 8. **跨轮台账**：新发现的 Major/Minor 用 `ledger add` 登记，闭环用 `ledger close`；深审只处理 `ledger list` 中的 open 项与新增项，避免逐轮人肉翻旧报告。
 9. **代码–论文对账**：Agent C 填写 `code_correspondence`，把正文和表格中的实验数字、模型结构、超参数、实验设计四类主张逐项对到脚本、配置、日志或结果文件，每行带 `aspect` 与 `paper_ref`（`mismatch` 另附 `paper_quote`）。对不上记 Major（超参纯记录偏差可 Minor）；没有代码则 `code_status=missing`，不得写成已复核；维度不适用须在 `aspects_skipped` 写明理由。作者修订说明不能代替打开结果文件。历史 run 无 `code_status` 时 `doctor` 不追溯。

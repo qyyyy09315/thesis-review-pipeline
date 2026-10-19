@@ -38,6 +38,8 @@ docs/worklog.local.md
 docs/ledger.json
 docs/algorithm_ledger.json
 docs/system_ledger.json
+docs/delivery.local.json
+docs/delivery.json
 
 # Local agent hook / session state
 .mimosa/
