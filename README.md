@@ -11,7 +11,7 @@
 [![Default: offline](https://img.shields.io/badge/default-offline-0f766e)](AGENTS.md)
 [![Review only](https://img.shields.io/badge/policy-review--only-6d28d9)](AGENTS.md)
 
-中文工科、理科本科毕业设计初稿的审稿流水线，产出四段式报告、定级和二稿路线图。不改写正文，默认离线。
+面向中文本科毕业设计的 Agent 辅助审阅工作区，支持预检、代码与实验对账、跨轮问题追踪和交付总览。只审不改，默认离线。
 
 </div>
 
@@ -22,23 +22,52 @@
 <p align="center"><img src="docs/assets/workflow.svg" alt="审稿流水线：papers 原稿 → ingest 归一 → Stage 1 预检 → A/B/C 分审 → consolidator → 四段式报告" width="860"/></p>
 
 稿件从 `papers/` 归一成 Markdown，先过一遍机械预检，查未定义符号、过强断言和结构缺口。
-预检之后分三路审查：A 管动机与文献边界，B 管方法严密性，C 管实验充分度和代码–论文对账。
-consolidator 汇总三路意见，生成四段式报告和二稿路线图。每一步都记进工作日志。
+预检之后由 Agent 分三路审查：A 管动机与文献边界，B 管方法严密性，C 管实验充分度和代码–论文对账。
+Agent 把三路意见写入 consolidator。`render` 再收成四段式报告和二稿路线图。CLI 不代替深审。
 
 定级分优秀、良好、及格、退修四档。虚构样例，定级退修：[review_report.md](runs/20260917-112554-sample_thesis/review_report.md)
 
 ## 快速开始
 
-待审稿放进 `papers/`，真实稿件不要入库：
+需要 CPython 3.12。进入仓库后自建虚拟环境，不要用系统里别的 Python 直接装依赖。真实稿件放进 `papers/`，不要入库。
 
 ```bash
-pip install -r requirements.txt
+python -m venv .venv
+```
 
+```bash
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
+
+python -m pip install -r requirements.txt
+```
+
+Windows 上若 `python` 不是 3.12，改用 `py -3.12 -m venv .venv`。
+
+`init-run` 只做归一、机械预检和分审骨架，定级记为「待深审」。它不审完这篇稿。
+
+```bash
 python scripts/thesis_review.py init-run papers/你的论文.md --title "题目" --field "专业"
+```
+
+跑完后，`runs/<时间>-<稿名>/` 里有预检结果、空的分审 JSON 和一份初稿报告。深审由 Agent 完成：先读并执行 [thesis-review 技能](.agents/skills/thesis-review/SKILL.md)，再按 [分审合同](templates/agents) 填写该 run 下的四个文件。
+
+- `agents/agent_a_motivation.json`：动机与文献边界
+- `agents/agent_b_methodology.json`：方法严密性
+- `agents/agent_c_experiments.json`：实验充分度，以及数字、结构、超参、实验设计四类代码对账
+- `agents/consolidator.json`：汇总；深审结束把 `status` 写成 `done`
+
+CLI 不会自行完成深审。意见写进 JSON 之后，再渲染正式报告：
+
+```bash
 python scripts/thesis_review.py render runs/<id>
 ```
 
-跑完 `init-run`，`runs/<时间>-<稿名>/` 里就有预检结果、分审骨架和初稿报告。
+`render` 只根据已有的 `agents/*.json` 生成四段式报告，不补审。
+
+输入可以是 `.md`、`.docx`、`.pdf`、`.tex`、`.typ`。协作约定见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 <details>
 <summary><b>全部子命令</b></summary>
@@ -72,6 +101,7 @@ python scripts/thesis_review.py render runs/<id>
 | [templates/review_report.md.j2](templates/review_report.md.j2) | 报告合同的四级标题模板 |
 | [docs/worklog.md](docs/worklog.md) | 工作日志 |
 | [docs/references.md](docs/references.md) | 外部项目取舍 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 提交、PR 格式和隐私声明 |
 
 <details>
 <summary><b>外部参考</b>（不 fork，只吸收机制）</summary>
@@ -91,15 +121,13 @@ python scripts/thesis_review.py render runs/<id>
 
 ---
 
-## 致谢
-
 <div align="center">
 
 ## 献给
 
 # 𝓨𝓲-𝔁𝓾𝓪𝓷 𝓨𝓘𝓝
 
-感谢她同我的教导和交流，她的实干和实践精神深刻地影响和激励了我。
+感谢她给予我的指导，以及我们之间的交流。她重视实践、认真做事的态度，一直影响着我。
 
 题记的“纸上得来终觉浅”就是对她优秀品格的真实写照。
 
