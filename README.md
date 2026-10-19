@@ -125,7 +125,7 @@ python scripts/thesis_review.py render runs/<id>
 
 ## 献给
 
-# 𝓨𝓲-𝔁𝓾𝓪𝓷 𝓨𝓘𝓝
+# [𝓨𝓲-𝔁𝓾𝓪𝓷 𝓨𝓘𝓝](https://github.com/m-lightt)
 
 感谢她给予我的指导，以及我们之间的交流。她重视实践、认真做事的态度，一直影响着我。
 
